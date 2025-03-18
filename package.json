@@ -1,0 +1,25 @@
+{
+  "name": "server",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "start": "bun --watch index.ts",
+    "dev": "bun run index.ts",
+    "minify": "bun build index.ts --outdir=build --minify"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/pg": "^8.11.11",
+    "drizzle-kit": "^0.30.5"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.40.1",
+    "elysia": "^1.2.25",
+    "pg": "^8.14.1",
+    "qrcode": "^1.5.4"
+  }
+}
