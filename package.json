@@ -16,10 +16,16 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@elysiajs/jwt": "^1.2.0",
+    "@lucia-auth/oauth": "^3.5.3",
+    "@types/qrcode": "^1.5.5",
+    "bcrypt": "^5.1.1",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.40.1",
     "elysia": "^1.2.25",
+    "nanoid": "^5.1.4",
     "pg": "^8.14.1",
+    "postgres": "^3.4.5",
     "qrcode": "^1.5.4"
   }
 }

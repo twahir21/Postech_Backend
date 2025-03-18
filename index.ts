@@ -1,8 +1,10 @@
 import Elysia from "elysia";
 import homePlugin from "./plugin/home";
+import qrCodePlugin from "./plugin/qrcode";
 
 new Elysia()
     .use(homePlugin)
+    .use(qrCodePlugin)
 
 .listen(3000);
 
