@@ -23,3 +23,5 @@ to save to a build file use
 ```bash 
 bun build index.ts --outdir=build --minify
 ```
+
+argon2 is better than bcrypt
