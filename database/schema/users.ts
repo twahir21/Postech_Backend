@@ -1,7 +1,9 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { pgTable, text, uuid } from "drizzle-orm/pg-core";
 
-export function connectToUserDb(userDbName: string) {
-    const userDbUrl = `postgres://postgres:yourpassword@localhost:5432/${userDbName}`;
-    return drizzle(postgres(userDbUrl));
-}
+export const users = pgTable("users", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    shopName: text("shop_name").unique().notNull(),
+    username: text("username").notNull(),
+    email: text("email").unique().notNull(),
+    password: text("password").notNull(),
+});
