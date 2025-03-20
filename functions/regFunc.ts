@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { registerRequest } from "../types/types"; 
 import { mainDb } from "../database/schema/mainDb";
 import { users } from "../database/schema/users";
+import { hashPassword } from "./security/hash";
 
 export const regPost = async ({ body } : { body: registerRequest }) => {
     try {
@@ -24,20 +25,22 @@ export const regPost = async ({ body } : { body: registerRequest }) => {
 
         const { shopName, username, email, password } : registerRequest = parsed.data;
 
-        
+        // hash the password
+        const hashedPassword = await hashPassword(password); // the function returns a string so const is always string
+
         // save to database
         await mainDb.insert(users).values({
             shopName,
             username,
             email,
-            password, 
+            password: hashedPassword // always returns a string so no worries to errors,
         });
 
         return {
             success: true,
-            message: "User registered Successfully"
+            message: "User registered Successfully",
         }
-        // save to database
+        
     } catch (error) {
         if (error instanceof Error) {
             return {

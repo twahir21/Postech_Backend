@@ -1,6 +1,6 @@
 import argon2 from "argon2";
 
-export async function hashPassword(password: string) {
+export const hashPassword = async (password: string): Promise <string> => {
     try {
         const hash = await argon2.hash(password, {
             type: argon2.argon2id, // Best for general-purpose use
@@ -11,5 +11,6 @@ export async function hashPassword(password: string) {
         return hash;
     } catch (err) {
         console.error("Error hashing password:", err);
+        throw new Error ("Failed to hash the password"); // this ensures that always this function returns a string
     }
 }
