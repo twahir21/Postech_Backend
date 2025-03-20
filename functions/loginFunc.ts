@@ -1,4 +1,4 @@
-import { mainDb } from "../database/schema/mainDb";
+import { mainDb } from "../database/schema/connections/mainDb";
 import { users } from "../database/schema/users";
 import { sessions } from "../database/schema/sessions";
 import { generateToken, comparePassword } from "../utils/auth";

@@ -2,11 +2,13 @@ import Elysia from "elysia";
 import homePlugin from "./plugin/home";
 import qrCodePlugin from "./plugin/qrcode";
 import regPlugin from "./plugin/registration";
+import usersRoute from "./functions/usersFunc";
 
 new Elysia()
     .use(homePlugin)
     .use(qrCodePlugin)
     .use(regPlugin)
+    .use(usersRoute)
 
 .listen(3000);
 

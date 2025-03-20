@@ -1,5 +1,5 @@
 import { verifyToken } from "../utils/auth";
-import { mainDb } from "../database/schema/mainDb";
+import { mainDb } from "../database/schema/connections/mainDb";
 import { sessions } from "../database/schema/sessions";
 import { eq } from "drizzle-orm";
 

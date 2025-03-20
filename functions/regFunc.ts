@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { registerRequest } from "../types/types"; 
-import { mainDb } from "../database/schema/mainDb";
+import { mainDb } from "../database/schema/connections/mainDb";
 import { users } from "../database/schema/users";
 import { hashPassword } from "./security/hash";
 
