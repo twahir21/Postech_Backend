@@ -1,8 +1,8 @@
 import { z } from "zod";
 import type { registerRequest } from "../types/types"; 
-import { hashPassword } from "./hash";
 import { mainDb } from "../database/schema/mainDb";
 import { users } from "../database/schema/users";
+
 export const regPost = async ({ body } : { body: registerRequest }) => {
     try {
         // validation of data
@@ -23,6 +23,7 @@ export const regPost = async ({ body } : { body: registerRequest }) => {
         }
 
         const { shopName, username, email, password } : registerRequest = parsed.data;
+
         
         // save to database
         await mainDb.insert(users).values({
