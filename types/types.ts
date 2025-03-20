@@ -5,3 +5,12 @@ export interface registerRequest {
     password?: string;
     shopName?: string;
 }
+
+export interface productTypes {
+    name?: string;
+    company?: string;
+    priceBought?: number;
+    priceSold?: number;
+    stock?: number;
+    minStock?: number;
+}

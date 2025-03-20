@@ -25,6 +25,8 @@
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.40.1",
     "elysia": "^1.2.25",
+    "i18next": "^24.2.3",
+    "i18next-fs-backend": "^2.6.0",
     "jsonwebtoken": "^9.0.2",
     "lucia": "^3.2.2",
     "pg": "^8.14.1",
