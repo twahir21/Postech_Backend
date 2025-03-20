@@ -14,3 +14,7 @@ export interface productTypes {
     stock?: number;
     minStock?: number;
 }
+
+export interface headTypes {
+    [key: string]: string | undefined;
+}

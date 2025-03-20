@@ -8,7 +8,7 @@ await i18next.use(Backend).init({
     lng: "en", // Default language
     fallbackLng: "en",
     backend: {
-        loadPath: path.join(__dirname, "languages/{{lng}}.json"),
+        loadPath: path.join(__dirname, "/functions/languages/{{lng}}.json"),
     },
     interpolation: { escapeValue: false },
 });

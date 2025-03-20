@@ -4,6 +4,10 @@ import qrCodePlugin from "./plugin/qrcode";
 import regPlugin from "./plugin/registration";
 import usersRoute from "./functions/usersFunc";
 import prodPlugin from "./plugin/products";
+import { setupI18n } from "./functions/translation";
+
+// initialize translation before start the server
+await setupI18n();
 
 new Elysia()
     .use(homePlugin)
