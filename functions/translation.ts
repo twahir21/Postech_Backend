@@ -13,6 +13,7 @@ const __dirname = path.dirname(__filename);
 const translationCache = new LRUCache<string, string>({
     max: 1000, // Store up to 1000 translations
     ttl: 1000 * 60 * 5, // Expire translations after 5 minutes
+    
 });
 
 // 🛠 **Initialize i18next** (Lazy Load)
