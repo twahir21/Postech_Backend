@@ -1,15 +1,15 @@
 import type { headTypes } from "../types/types";
 import { getTranslation } from "./translation";
 
-export const homeGet = ({ headers }: {headers: headTypes}) => {
+export const homeGet = async({ headers }: {headers: headTypes}) => {
 
-    const lang = headers["accept-language"]?.split(",")[0] || "en";
+    const lang = headers["accept-language"]?.split(",")[0] || "sw";
 
 
     try{
         return {
             success: true,
-            message: getTranslation(lang, "greeting")
+            message: await getTranslation(lang, "greeting")
         }
     }catch(error) {
         if (error instanceof Error){
@@ -20,7 +20,7 @@ export const homeGet = ({ headers }: {headers: headTypes}) => {
         }else{
             return {
                 success: false,
-                error: getTranslation(lang, "serverErr")
+                error: await getTranslation(lang, "serverErr")
             }
         }
     }

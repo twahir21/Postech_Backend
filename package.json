@@ -8,12 +8,12 @@
     "minify": "bun build index.ts --outdir=build --minify"
   },
   "devDependencies": {
-    "@types/bun": "latest",
+    "@types/bun": "^1.2.5",
     "@types/pg": "^8.11.11",
     "drizzle-kit": "^0.30.5"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.8.2"
   },
   "dependencies": {
     "@elysiajs/jwt": "^1.2.0",
@@ -27,7 +27,9 @@
     "elysia": "^1.2.25",
     "i18next": "^24.2.3",
     "i18next-fs-backend": "^2.6.0",
+    "ioredis": "^5.6.0",
     "jsonwebtoken": "^9.0.2",
+    "lru-cache": "^11.0.2",
     "lucia": "^3.2.2",
     "pg": "^8.14.1",
     "postgres": "^3.4.5",
