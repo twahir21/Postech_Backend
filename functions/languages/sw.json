@@ -1,4 +1,9 @@
 {
-    "greeting": "Habari, kutoka Seva ya Elysia na Bun"
+    "greeting": "Habari, kutoka Seva ya Elysia na Bun",
+    "regMessage": "Mtumiaji amejisajili kiukamilifu",
+    "shopErr": "Jina na duka haliwezi kuwa na herufi chini ya tatu",
+    "serverErr": "Seva imeshindwa kuchakata ombi lako",
+    "usernameErr": "Jina la Mtumiaji lazima liwe na herufi zaidi ya tatu",
+    "passErr": "Nenosiri lazima liwe angalau na herufi 6"
 }
   

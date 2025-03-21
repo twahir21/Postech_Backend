@@ -1,17 +1,20 @@
 import { z } from "zod";
-import type { registerRequest } from "../types/types"; 
+import type { headTypes, registerRequest } from "../types/types"; 
 import { mainDb } from "../database/schema/connections/mainDb";
 import { users } from "../database/schema/users";
 import { hashPassword } from "./security/hash";
+import { getTranslation } from "./translation";
 
-export const regPost = async ({ body } : { body: registerRequest }) => {
+export const regPost = async ({ body, headers} : { body: registerRequest, headers: headTypes }) => {
+    const lang = headers["accept-language"]?.split(",")[0] || "en";
+
     try {
         // validation of data
         const schema = z.object({
-            shopName: z.string().min(3, "ShopName must have atleast 3 characters"),
-            username: z.string().min(3, "Username must have more than 3 characters"),
+            shopName: z.string().min(3, getTranslation(lang, "shopErr")),
+            username: z.string().min(3, getTranslation(lang, "usernameErr")),
             email: z.string().email(),
-            password: z.string().min(6, "Password must have atleast 6 characters")
+        password: z.string().min(6, getTranslation(lang, "passErr"))
         });
 
         const parsed = schema.safeParse(body);
@@ -38,7 +41,7 @@ export const regPost = async ({ body } : { body: registerRequest }) => {
 
         return {
             success: true,
-            message: "User registered Successfully",
+            message: getTranslation(lang, "regMessage"),
         }
         
     } catch (error) {
@@ -49,7 +52,7 @@ export const regPost = async ({ body } : { body: registerRequest }) => {
             }
         }else {
             return {
-                error: "Server failed to process your request",
+                error: getTranslation(lang, "serverErr"),
                 success: false
             }
         }

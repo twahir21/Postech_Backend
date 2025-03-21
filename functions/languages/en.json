@@ -1,4 +1,9 @@
 {
-    "greeting": "Hello, from Elysia and Bun server!"
+    "greeting": "Hello, from Elysia and Bun server!",
+    "regMessage": "User registered successfully",
+    "shopErr": "ShopName must have atleast 3 characters",
+    "serverErr": "Server failed to process your request",
+    "usernameErr": "Username must have more than 3 characters",
+    "passErr": "Password must have atleast 6 characters"
 }
   

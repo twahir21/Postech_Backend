@@ -20,7 +20,7 @@ export const homeGet = ({ headers }: {headers: headTypes}) => {
         }else{
             return {
                 success: false,
-                error: "Unknown error occurred!"
+                error: getTranslation(lang, "serverErr")
             }
         }
     }
