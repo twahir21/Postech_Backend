@@ -18,3 +18,8 @@ export interface productTypes {
 export interface headTypes {
     [key: string]: string | undefined;
 }
+
+export interface categoriesTypes {
+    name?: string;
+    company?: string;
+}

@@ -1,12 +1,15 @@
 import { z } from "zod"
-import type { productTypes } from "../types/types";
+import type { headTypes, productTypes } from "../types/types";
+import { getTranslation } from "./translation";
 
 // implementing crud for products 
-export const prodPost = async ({ body }: {body: productTypes}) => {
+export const prodPost = async ({ body, headers }: {body: productTypes, headers: headTypes}) => {
+    const lang = headers["accept-language"]?.split(",")[0] || "sw";
+
     try{
         // validating product data
         const schema = z.object({
-            name: z.string().min(3, "Product name cannot be less than 3 characters"),
+            name: z.string().min(3, await(getTranslation(lang, "ProdNameErr"))),
             company: z.string().min(3, "Company name cannot have less than 3 characters"),
             priceBought: z.number().min(1, "Price bought cannot be less than 1"),
             priceSold: z.number().min(1, "Price sold cannot be less than 1"),
@@ -40,7 +43,7 @@ export const prodPost = async ({ body }: {body: productTypes}) => {
             }
         }else{
             return {
-                error: "Server failed to process your request",
+                error: await getTranslation(lang, "serverErr"),
                 success: false
             }
         }

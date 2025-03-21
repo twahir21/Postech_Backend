@@ -1,8 +1,15 @@
 {
     "greeting": "Hello, from Elysia and Bun server!",
+
+    "serverErr": "Server failed to process your request",
+
+
     "regMessage": "User registered successfully",
     "shopErr": "Shop name must have at least 3 characters",
-    "serverErr": "Server failed to process your request",
     "usernameErr": "Username must have more than 3 characters",
-    "passErr": "Password must have at least 6 characters"
+    "passErr": "Password must have at least 6 characters",
+
+    "nameErr": "Name cannot have less than 3 characters",
+    "categMsg": "categories assigned successfully"
+
 }

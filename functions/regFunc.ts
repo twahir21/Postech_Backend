@@ -11,10 +11,10 @@ export const regPost = async ({ body, headers} : { body: registerRequest, header
     try {
         // validation of data
         const schema = z.object({
-            shopName: z.string().min(3, getTranslation(lang, "shopErr")),
-            username: z.string().min(3, getTranslation(lang, "usernameErr")),
+            shopName: z.string().min(3, await getTranslation(lang, "shopErr")),
+            username: z.string().min(3, await getTranslation(lang, "usernameErr")),
             email: z.string().email(),
-        password: z.string().min(6, getTranslation(lang, "passErr"))
+        password: z.string().min(6, await getTranslation(lang, "passErr"))
         });
 
         const parsed = schema.safeParse(body);
