@@ -14,13 +14,13 @@ export const homeGet = async({ headers }: {headers: headTypes}) => {
     }catch(error) {
         if (error instanceof Error){
             return {
-                error: error.message,
+                message: error.message,
                 success: false
             }
         }else{
             return {
                 success: false,
-                error: await getTranslation(lang, "serverErr")
+                message: await getTranslation(lang, "serverErr")
             }
         }
     }

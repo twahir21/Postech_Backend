@@ -44,13 +44,13 @@ export const categPost = async ({ body, headers }: { body : categoriesTypes, hea
     } catch (error) {
         if (error instanceof Error) {
             return {
-                error: error.message,
+                message: error.message,
                 success: false
             }
         }else{
             return{
                 success: false,
-                error: await getTranslation(lang, "serverErr")
+                message: await getTranslation(lang, "serverErr")
             }
         }
     }
@@ -78,12 +78,12 @@ export const categGet = async ({headers} : {headers: headTypes}) => {
         if(error instanceof Error) {
             return {
                 success: false,
-                error: error.message
+                message: error.message
             }
         }else{
             return {
                 success: false,
-                error: await getTranslation(lang, "serverErr")
+                message: await getTranslation(lang, "serverErr")
             }
         }
     }
@@ -147,13 +147,13 @@ export const categPut = async ({ body, headers, params }: { body : categoriesTyp
     } catch (error) {
         if (error instanceof Error) {
             return {
-                error: error.message,
+                message: error.message,
                 success: false
             }
         }else{
             return{
                 success: false,
-                error: await getTranslation(lang, "serverErr")
+                message: await getTranslation(lang, "serverErr")
             }
         }
     }
@@ -194,12 +194,12 @@ export const categDel = async ({ headers, params}: {headers: headTypes, params: 
         if (error instanceof Error){
             return {
                 success: false,
-                error: error.message
+                message: error.message
             }
         }else{
             return {
                 success: false,
-                error: await getTranslation(lang, "serverErr")
+                message: await getTranslation(lang, "serverErr")
             }
         }
     }
@@ -237,12 +237,12 @@ export const categGetOne = async ({headers, params} : {headers: headTypes, param
         if(error instanceof Error) {
             return {
                 success: false,
-                error: error.message
+                message: error.message
             }
         }else{
             return {
                 success: false,
-                error: await getTranslation(lang, "serverErr")
+                message: await getTranslation(lang, "serverErr")
             }
         }
     }

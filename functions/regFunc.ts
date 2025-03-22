@@ -47,12 +47,12 @@ export const regPost = async ({ body, headers} : { body: registerRequest, header
     } catch (error) {
         if (error instanceof Error) {
             return {
-                error: error.message,
+                message: error.message,
                 success: false
             }
         }else {
             return {
-                error: getTranslation(lang, "serverErr"),
+                message: getTranslation(lang, "serverErr"),
                 success: false
             }
         }
