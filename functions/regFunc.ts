@@ -55,7 +55,7 @@ export const regPost = async ({ body, headers} : { body: registerRequest, header
             }
         }else {
             return {
-                message: getTranslation(lang, "serverErr"),
+                message: await getTranslation(lang, "serverErr"),
                 success: false
             }
         }
