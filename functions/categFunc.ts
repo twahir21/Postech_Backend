@@ -5,7 +5,9 @@ import { getTranslation } from "./translation"
 import type { categoriesTypes, headTypes } from "../types/types";
 import { mainDb } from "../database/schema/connections/mainDb";
 import { categories } from "../database/schema/shop";
+import { eq } from "drizzle-orm";
 
+// post 
 export const categPost = async ({ body, headers }: { body : categoriesTypes, headers: headTypes}) => {
     const lang = headers["accept-language"]?.split(",")[0] || "sw";
     try {
@@ -53,3 +55,198 @@ export const categPost = async ({ body, headers }: { body : categoriesTypes, hea
         }
     }
 }
+
+// get request
+export const categGet = async ({headers} : {headers: headTypes}) => {
+    const lang = headers["accept-language"]?.split(",")[0] || "sw";
+    try {
+        const allCateg = await mainDb.select().from(categories);
+
+        if(allCateg.length === 0) {
+            return {
+                success: false,
+                message: await getTranslation(lang, "notFound")
+            }
+        }
+
+        return {
+            success: true,
+            message: await getTranslation(lang, "success"),
+            data: allCateg
+        }
+    } catch (error) {
+        if(error instanceof Error) {
+            return {
+                success: false,
+                error: error.message
+            }
+        }else{
+            return {
+                success: false,
+                error: await getTranslation(lang, "serverErr")
+            }
+        }
+    }
+}
+
+// update
+export const categPut = async ({ body, headers, params }: { body : categoriesTypes, headers: headTypes, params: { id: string}}) => {
+    const lang = headers["accept-language"]?.split(",")[0] || "sw";
+    try {
+    
+    // validate the data
+    const schema = z.object({
+        name: z.string().min(3, await getTranslation(lang, "nameErr")),
+        company: z.string().min(3, await getTranslation(lang, "nameErr")),
+    });
+
+    const parse = schema.safeParse(body);
+
+    if(!parse.success) {
+        return {
+            error: parse.error.format(),
+            success: false
+        }
+    }
+
+    // now extract
+    const { name, company }: categoriesTypes = parse.data;
+
+    // extract id from params
+    const { id } = params;
+
+    // Validate ID length before querying (optional)
+    if (!id || id.length < 5) {
+        return {
+            success: false,
+            message: await getTranslation(lang, "idErr")
+        };
+    }
+
+    // Update the category where id matches
+    const updateCateg = await mainDb
+        .update(categories)
+        .set({
+            name,
+            company
+        })
+        .where(eq(categories.id, id));
+
+    if (!updateCateg) {
+        return {
+            success: false,
+            message: await getTranslation(lang, "notFound")
+        }
+    }
+
+    return {
+        success: true,
+        message: await getTranslation(lang, "update")
+    }
+
+    } catch (error) {
+        if (error instanceof Error) {
+            return {
+                error: error.message,
+                success: false
+            }
+        }else{
+            return{
+                success: false,
+                error: await getTranslation(lang, "serverErr")
+            }
+        }
+    }
+}
+
+// delete
+export const categDel = async ({ headers, params}: {headers: headTypes, params: {id: string}}) => {
+    const lang = headers["accept-language"]?.split(",")[0] || "sw";
+
+
+    try { 
+        // get id
+        const { id } = params;
+
+        // Validate ID length before querying (optional)
+        if (!id || id.length < 5) {
+            return {
+                success: false,
+                message: await getTranslation(lang, "idErr")
+            };
+        }
+
+        // delete from db
+        const categDel = await mainDb.delete(categories).where(eq(categories.id, id));
+
+        if (!categDel) {
+            return {
+                success: false,
+                message: await getTranslation(lang, "notFound")
+            }
+        }
+
+        return{
+            success: true,
+            message: await getTranslation(lang, "delMsg")
+        }
+    } catch (error) {
+        if (error instanceof Error){
+            return {
+                success: false,
+                error: error.message
+            }
+        }else{
+            return {
+                success: false,
+                error: await getTranslation(lang, "serverErr")
+            }
+        }
+    }
+} 
+
+// fetch one 
+export const categGetOne = async ({headers, params} : {headers: headTypes, params: {id : string}}) => {
+    const lang = headers["accept-language"]?.split(",")[0] || "sw";
+    try {
+        const { id } = params;
+
+        // Validate ID length before querying (optional)
+        if (!id || id.length < 5) {
+            return {
+                success: false,
+                message: await getTranslation(lang, "idErr")
+            };
+        }
+
+        const oneCateg = await mainDb.select().from(categories).where(eq(categories.id, id));
+
+        if(oneCateg.length === 0) {
+            return {
+                success: false,
+                message: await getTranslation(lang, "notFound")
+            }
+        }
+
+        return {
+            success: true,
+            message: await getTranslation(lang, "success"),
+            data: oneCateg[0] || null // ensure doesnot return array
+        }
+    } catch (error) {
+        if(error instanceof Error) {
+            return {
+                success: false,
+                error: error.message
+            }
+        }else{
+            return {
+                success: false,
+                error: await getTranslation(lang, "serverErr")
+            }
+        }
+    }
+}
+
+
+// update and delete data has no length use !data to ensure is valid

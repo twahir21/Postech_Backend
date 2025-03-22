@@ -1,0 +1,22 @@
+{
+    "greeting": "Bonjour, depuis le serveur Elysia et Bun!",
+
+    "serverErr": "Le serveur n'a pas pu traiter votre demande",
+
+    "regMessage": "Utilisateur enregistré avec succès",
+    "shopErr": "Le nom du magasin doit contenir au moins 3 caractères",
+    "usernameErr": "Le nom d'utilisateur doit contenir plus de 3 caractères",
+    "passErr": "Le mot de passe doit contenir au moins 6 caractères",
+
+    "nameErr": "Le nom ne peut pas contenir moins de 3 caractères",
+    "categMsg": "Catégories attribuées avec succès",
+
+    "notFound": "Rien trouvé dans la base de données!",
+
+    "idErr": "L'ID ne peut pas contenir moins de 5 chiffres ou être vide",
+
+    "success": "Données récupérées avec succès",
+    "update": "Données mises à jour avec succès",
+    "save": "Données enregistrées avec succès",
+    "delMsg": "Données supprimées avec succès"
+}

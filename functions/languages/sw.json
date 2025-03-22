@@ -1,12 +1,23 @@
 {
     "greeting": "Habari, kutoka kwa seva ya Elysia na Bun!",
 
+    "serverErr": "Seva imeshindwa kushughulikia ombi lako",
+
+
     "regMessage": "Mtumiaji amesajiliwa kwa mafanikio",
     "shopErr": "Jina la duka lazima liwe na angalau herufi 3",
-    "serverErr": "Seva imeshindwa kushughulikia ombi lako",
     "usernameErr": "Jina la mtumiaji lazima liwe na zaidi ya herufi 3",
     "passErr": "Nenosiri lazima liwe na angalau herufi 6",
     
     "nameErr": "Jina haliwezi kuwa na herufi chini ya 3",
-    "categMsg": "Jamii za bidhaa zimesajiliwa kiukamilifu"
+    "categMsg": "Jamii za bidhaa zimehifadhiwa kiukamilifu",
+
+    "notFound": "Hakuna kilichopatikana katika hifadhi",
+
+    "idErr": "ID haiwezi kuwa tupu au kuwa na tarakimu chini ya 5",
+
+    "success": "Taarifa zimepatikana kiukamilifu",
+    "save": "Taarifa zimehifadhiwa kiukamilifu",
+    "update": "Taarifa zimebadilisha na kuhifadhiwa kiukamilifu",
+    "delMsg" : "Taarifa zimefutwa kiukamilifu"
 }

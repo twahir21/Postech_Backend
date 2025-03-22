@@ -10,6 +10,14 @@
     "passErr": "Password must have at least 6 characters",
 
     "nameErr": "Name cannot have less than 3 characters",
-    "categMsg": "categories assigned successfully"
+    "categMsg": "categories assigned successfully",
 
+    "notFound": "Nothing found in the database!",
+
+    "idErr": "ID cannot have less than 5 digits or empty",
+
+    "success": "Data fetched successfully",
+    "update": "Data updated successfully",
+    "save": "Data saved successfully",
+    "delMsg": "Data deleted successfully"
 }
