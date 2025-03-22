@@ -8,7 +8,7 @@ import { categories } from "../database/schema/shop";
 import { eq } from "drizzle-orm";
 
 // post 
-export const categPost = async ({ body, headers }: { body : categoriesTypes, headers: headTypes}) => {
+export const categPost = async ({ body, headers, params }: { body : categoriesTypes, headers: headTypes, params: {shopId: string}}) => {
     const lang = headers["accept-language"]?.split(",")[0] || "sw";
     try {
     
@@ -28,10 +28,18 @@ export const categPost = async ({ body, headers }: { body : categoriesTypes, hea
     }
 
     // now extract
+    const { shopId } = params;
+    if (!shopId || shopId.length < 5) {
+        return {
+            success: false,
+            message: await getTranslation(lang, "idErr")
+        }
+    }
     const { name, company }: categoriesTypes = parse.data;
 
     // now save to database
     await mainDb.insert(categories).values({
+        shopId,
         name,
         company
     });

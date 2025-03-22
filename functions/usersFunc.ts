@@ -1,6 +1,6 @@
 import Elysia from "elysia";
 import { mainDb } from "../database/schema/connections/mainDb"; // Import your database instance
-import { users } from "../database/schema/users";  // Import users table
+import { users } from "../database/schema/shop"; // Import users table
 
 const usersRoute = new Elysia()
     .get("/users", async () => {

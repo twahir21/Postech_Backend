@@ -11,12 +11,12 @@ await setupI18n();
 
 new Elysia()
     .use(homePlugin)
-    .use(qrCodePlugin)
+    // .use(qrCodePlugin)
     .use(regPlugin)
-    .use(usersRoute)
-    .use(prodPlugin)
+    // .use(usersRoute)
+    // .use(prodPlugin)
     .use(categoriesPlugin)
-    .use(suppPlugin)
+    // .use(suppPlugin)
 
 .listen(3000);
 

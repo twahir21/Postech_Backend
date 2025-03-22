@@ -3,7 +3,7 @@ export interface registerRequest {
     email?: string;
     username?: string;
     password?: string;
-    shopName?: string;
+    name?: string;
 }
 
 export interface productTypes {
