@@ -21,7 +21,7 @@ export const regPost = async ({ body, headers} : { body: registerRequest, header
 
         if(!parsed.success) {
             return {
-                error: parsed.error.format(),
+                message: parsed.error.format(),
                 success: false
             }
         }

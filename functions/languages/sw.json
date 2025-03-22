@@ -19,5 +19,7 @@
     "success": "Taarifa zimepatikana kiukamilifu",
     "save": "Taarifa zimehifadhiwa kiukamilifu",
     "update": "Taarifa zimebadilisha na kuhifadhiwa kiukamilifu",
-    "delMsg" : "Taarifa zimefutwa kiukamilifu"
+    "delMsg" : "Taarifa zimefutwa kiukamilifu",
+
+    "contactErr": "Mawasiliano hayawezi kuwa na herufi (tarakimu) chini ya 4"
 }

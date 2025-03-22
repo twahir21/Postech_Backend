@@ -2,20 +2,20 @@
 
 import { z } from "zod"
 import { getTranslation } from "./translation"
-import type { categoriesTypes, headTypes } from "../types/types";
+import type { headTypes, suppTypes } from "../types/types";
 import { mainDb } from "../database/schema/connections/mainDb";
-import { categories } from "../database/schema/shop";
+import { suppliers } from "../database/schema/shop";
 import { eq } from "drizzle-orm";
 
 // post 
-export const categPost = async ({ body, headers }: { body : categoriesTypes, headers: headTypes}) => {
+export const suppPost = async ({ body, headers }: { body : suppTypes, headers: headTypes}) => {
     const lang = headers["accept-language"]?.split(",")[0] || "sw";
     try {
     
     // validate the data
     const schema = z.object({
         name: z.string().min(3, await getTranslation(lang, "nameErr")),
-        company: z.string().min(3, await getTranslation(lang, "nameErr"))
+        contact: z.string().min(3, await getTranslation(lang, "contactErr"))
     });
 
     const parse = schema.safeParse(body);
@@ -28,17 +28,17 @@ export const categPost = async ({ body, headers }: { body : categoriesTypes, hea
     }
 
     // now extract
-    const { name, company }: categoriesTypes = parse.data;
+    const { name, contact }: suppTypes = parse.data;
 
     // now save to database
-    await mainDb.insert(categories).values({
+    await mainDb.insert(suppliers).values({
         name,
-        company
+        contact
     });
 
     return {
         success: true,
-        message: await getTranslation(lang, "categMsg")
+        message: await getTranslation(lang, "save")
     }
 
     } catch (error) {
@@ -57,12 +57,12 @@ export const categPost = async ({ body, headers }: { body : categoriesTypes, hea
 }
 
 // get request
-export const categGet = async ({headers} : {headers: headTypes}) => {
+export const suppGet = async ({headers} : {headers: headTypes}) => {
     const lang = headers["accept-language"]?.split(",")[0] || "sw";
     try {
-        const allCateg = await mainDb.select().from(categories);
+        const allSupp = await mainDb.select().from(suppliers);
 
-        if(allCateg.length === 0) {
+        if(allSupp.length === 0) {
             return {
                 success: false,
                 message: await getTranslation(lang, "notFound")
@@ -72,7 +72,7 @@ export const categGet = async ({headers} : {headers: headTypes}) => {
         return {
             success: true,
             message: await getTranslation(lang, "success"),
-            data: allCateg
+            data: allSupp
         }
     } catch (error) {
         if(error instanceof Error) {
@@ -90,14 +90,14 @@ export const categGet = async ({headers} : {headers: headTypes}) => {
 }
 
 // update
-export const categPut = async ({ body, headers, params }: { body : categoriesTypes, headers: headTypes, params: { id: string}}) => {
+export const suppPut = async ({ body, headers, params }: { body : suppTypes, headers: headTypes, params: { id: string}}) => {
     const lang = headers["accept-language"]?.split(",")[0] || "sw";
     try {
     
     // validate the data
     const schema = z.object({
         name: z.string().min(3, await getTranslation(lang, "nameErr")),
-        company: z.string().min(3, await getTranslation(lang, "nameErr")),
+        contact: z.string().min(4, await getTranslation(lang, "contactErr")),
     });
 
     const parse = schema.safeParse(body);
@@ -110,7 +110,7 @@ export const categPut = async ({ body, headers, params }: { body : categoriesTyp
     }
 
     // now extract
-    const { name, company }: categoriesTypes = parse.data;
+    const { name, contact }: suppTypes = parse.data;
 
     // extract id from params
     const { id } = params;
@@ -123,16 +123,16 @@ export const categPut = async ({ body, headers, params }: { body : categoriesTyp
         };
     }
 
-    // Update the category where id matches
-    const updateCateg = await mainDb
-        .update(categories)
+    // Update the suppliers where id matches
+    const updateSupp = await mainDb
+        .update(suppliers)
         .set({
             name,
-            company
+            contact
         })
-        .where(eq(categories.id, id));
+        .where(eq(suppliers.id, id));
 
-    if (!updateCateg) {
+    if (!updateSupp) {
         return {
             success: false,
             message: await getTranslation(lang, "notFound")
@@ -160,7 +160,7 @@ export const categPut = async ({ body, headers, params }: { body : categoriesTyp
 }
 
 // delete
-export const categDel = async ({ headers, params}: {headers: headTypes, params: {id: string}}) => {
+export const suppDel = async ({ headers, params}: {headers: headTypes, params: {id: string}}) => {
     const lang = headers["accept-language"]?.split(",")[0] || "sw";
 
 
@@ -177,9 +177,9 @@ export const categDel = async ({ headers, params}: {headers: headTypes, params: 
         }
 
         // delete from db
-        const categDel = await mainDb.delete(categories).where(eq(categories.id, id));
+        const suppDel = await mainDb.delete(suppliers).where(eq(suppliers.id, id));
 
-        if (!categDel) {
+        if (!suppDel) {
             return {
                 success: false,
                 message: await getTranslation(lang, "notFound")
@@ -206,7 +206,7 @@ export const categDel = async ({ headers, params}: {headers: headTypes, params: 
 } 
 
 // fetch one 
-export const categGetOne = async ({headers, params} : {headers: headTypes, params: {id : string}}) => {
+export const suppGetOne = async ({headers, params} : {headers: headTypes, params: {id : string}}) => {
     const lang = headers["accept-language"]?.split(",")[0] || "sw";
     try {
         const { id } = params;
@@ -219,9 +219,9 @@ export const categGetOne = async ({headers, params} : {headers: headTypes, param
             };
         }
 
-        const oneCateg = await mainDb.select().from(categories).where(eq(categories.id, id));
+        const oneSupp = await mainDb.select().from(suppliers).where(eq(suppliers.id, id));
 
-        if(oneCateg.length === 0) {
+        if(oneSupp.length === 0) {
             return {
                 success: false,
                 message: await getTranslation(lang, "notFound")
@@ -231,7 +231,7 @@ export const categGetOne = async ({headers, params} : {headers: headTypes, param
         return {
             success: true,
             message: await getTranslation(lang, "success"),
-            data: oneCateg[0] || null // ensure doesnot return array
+            data: oneSupp[0] || null // ensure doesnot return array
         }
     } catch (error) {
         if(error instanceof Error) {
@@ -249,4 +249,3 @@ export const categGetOne = async ({headers, params} : {headers: headTypes, param
 }
 
 
-// update and delete data has no length use !data to ensure is valid

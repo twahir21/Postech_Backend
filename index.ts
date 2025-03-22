@@ -16,6 +16,7 @@ new Elysia()
     .use(usersRoute)
     .use(prodPlugin)
     .use(categoriesPlugin)
+    .use(suppPlugin)
 
 .listen(3000);
 
@@ -52,6 +53,7 @@ console.log("Server is running in the link http://localhost:3000")
 import fs from "fs";
 import path from "path";
 import categoriesPlugin from "./plugin/categories";
+import suppPlugin from "./plugin/supplier";
 
 // Define log file path inside the `logs` folder
 const logFilePath = path.join("logs", "logs.txt");

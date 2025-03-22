@@ -42,12 +42,12 @@ export const qrCodeGet = async () => {
     } catch (error) {
         if(error instanceof Error) {
             return {
-                error: error.message,
+                message: error.message,
                 success: false
             }
         }else{
             return{
-                error: "Server failed to process the request!",
+                message: "Server failed to process the request!",
                 success: false
             }
         }

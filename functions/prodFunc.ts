@@ -23,7 +23,7 @@ export const prodPost = async ({ body, headers }: {body: productTypes, headers: 
         if (!parsed.success) {
             return {
                 success: false,
-                error: parsed.error.format()
+                messsage: parsed.error.format()
             }
         }
 
@@ -38,12 +38,12 @@ export const prodPost = async ({ body, headers }: {body: productTypes, headers: 
     }catch(error){
         if (error instanceof Error) {
             return {
-                error: error.message,
+                messsage: error.message,
                 success: false
             }
         }else{
             return {
-                error: await getTranslation(lang, "serverErr"),
+                messsage: await getTranslation(lang, "serverErr"),
                 success: false
             }
         }

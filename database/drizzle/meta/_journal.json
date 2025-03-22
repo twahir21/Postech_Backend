@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1742403247735,
-      "tag": "0000_classy_captain_marvel",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1742403523292,
-      "tag": "0001_fancy_surge",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1742406518315,
-      "tag": "0002_old_christian_walker",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1742465896921,
-      "tag": "0003_busy_grey_gargoyle",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1742480093789,
-      "tag": "0004_chief_annihilus",
+      "when": 1742643755830,
+      "tag": "0000_sudden_wolf_cub",
       "breakpoints": true
     }
   ]

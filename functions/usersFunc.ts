@@ -19,8 +19,7 @@ const usersRoute = new Elysia()
         } catch (error) {
             return {
                 success: false,
-                message: "Failed to fetch users",
-                error: error instanceof Error ? error.message : "Unknown error"
+                message: error instanceof Error ? error.message : "Unknown error"
             };
         }
     })
@@ -45,8 +44,7 @@ const usersRoute = new Elysia()
         } catch (error) {
             return {
                 success: false,
-                message: "Failed to delete users",
-                error: error instanceof Error ? error.message : "Unknown error"
+                message: error instanceof Error ? error.message : "Unknown error"
             };
         }
     })

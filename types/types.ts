@@ -23,3 +23,8 @@ export interface categoriesTypes {
     name?: string;
     company?: string;
 }
+
+export interface suppTypes {
+    name?: string;
+    contact?: string;
+}

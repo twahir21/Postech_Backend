@@ -19,5 +19,7 @@
     "success": "Data fetched successfully",
     "update": "Data updated successfully",
     "save": "Data saved successfully",
-    "delMsg": "Data deleted successfully"
+    "delMsg": "Data deleted successfully",
+
+    "contactErr": "Contact cannot have less than 4 characters"
 }
