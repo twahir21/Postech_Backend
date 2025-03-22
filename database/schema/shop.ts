@@ -35,7 +35,7 @@ import {
 
 
   // -----------------
-  // Shop Users Table (Many-to-Many)
+  // Shop Users Table (Many-to-Many) multi-users 
   // -----------------
     export const shopUsers = pgTable("shop_users", {
       shopId: uuid("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
