@@ -14,7 +14,7 @@ export const suppPost = async ({ body, headers, params}: { body : suppTypes, hea
     
     // validate the data
     const schema = z.object({
-        name: z.string().min(3, await getTranslation(lang, "nameErr")),
+        company: z.string().min(3, await getTranslation(lang, "nameErr")),
         contact: z.string().min(3, await getTranslation(lang, "contactErr"))
     });
 
@@ -28,14 +28,14 @@ export const suppPost = async ({ body, headers, params}: { body : suppTypes, hea
     }
 
     // now extract
-    const { name, contact }: suppTypes = parse.data;
+    const { company, contact }: suppTypes = parse.data;
 
     const { shopId } = params;
 
     // now save to database
     await mainDb.insert(suppliers).values({
         shopId,
-        name,
+        company,
         contact
     });
 
@@ -99,7 +99,7 @@ export const suppPut = async ({ body, headers, params }: { body : suppTypes, hea
     
     // validate the data
     const schema = z.object({
-        name: z.string().min(3, await getTranslation(lang, "nameErr")),
+        company: z.string().min(3, await getTranslation(lang, "nameErr")),
         contact: z.string().min(4, await getTranslation(lang, "contactErr")),
     });
 
@@ -113,7 +113,7 @@ export const suppPut = async ({ body, headers, params }: { body : suppTypes, hea
     }
 
     // now extract
-    const { name, contact }: suppTypes = parse.data;
+    const { company, contact }: suppTypes = parse.data;
 
     // extract id from params
     const { id } = params;
@@ -130,7 +130,7 @@ export const suppPut = async ({ body, headers, params }: { body : suppTypes, hea
     const updateSupp = await mainDb
         .update(suppliers)
         .set({
-            name,
+            company,
             contact
         })
         .where(eq(suppliers.id, id));

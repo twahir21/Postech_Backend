@@ -24,6 +24,6 @@ export interface categoriesTypes {
 }
 
 export interface suppTypes {
-    name?: string;
+    company?: string;
     contact?: string;
 }
