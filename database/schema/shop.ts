@@ -54,20 +54,19 @@ import {
     export const categories = pgTable("categories", {
       id: uuid("id").defaultRandom().primaryKey(),
       name: text("name").notNull(),
-      company: text("company").notNull(),
       shopId: uuid("shop_id").notNull().references(() => shops.id),
   }, (table) => ({
-      uniqueCategory: uniqueIndex("unique_category").on(table.name, table.company, table.shopId), // Ensures uniqueness per shop
-  })); 
+    uniqueCategory: uniqueIndex("unique_category").on(table.name, table.shopId), 
+  }));
 
   // -----------------
   // Suppliers Table
   // -----------------
   export const suppliers = pgTable("suppliers", {
     id: uuid("id").defaultRandom().primaryKey(),
-    name: text("name").notNull(),
+    company: text("company").notNull(),
     contact: text("contact").notNull(),
-    shopId: uuid("shop_id").notNull().references(() => shops.id), // NEW: Links product to a shop
+    shopId: uuid("shop_id").notNull().references(() => shops.id),
     mostSoldProduct: uuid("most_sold_product"), // FK to products.id (optional)
     highestProfitProduct: uuid("highest_profit_product"), // FK to products.id (optional)
   });
@@ -78,13 +77,12 @@ import {
   export const products = pgTable("products", {
     id: uuid("id").defaultRandom().primaryKey(),
     name: text("name").notNull().unique(),
-    company: text("company").notNull(),
     categoryId: uuid("category_id").references(() => categories.id, { onDelete: "set null" }),
     priceBought: numeric("price_bought").notNull(),
     priceSold: numeric("price_sold").notNull(),
     stock: integer("stock").notNull(),
     shopId: uuid("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
-    supplierId: uuid("supplier_id").notNull().references(() => suppliers.id, {onDelete: "cascade"}),
+    supplierId: uuid("supplier_id").notNull().references(() => suppliers.id, {onDelete: "cascade"}), // Supplier (Company)
     minStock: integer("min_stock").notNull(),
     status: text("status").notNull().default("available"),
     unit: text("unit"),

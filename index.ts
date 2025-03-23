@@ -14,7 +14,7 @@ new Elysia()
     // .use(qrCodePlugin)
     .use(regPlugin)
     // .use(usersRoute)
-    // .use(prodPlugin)
+    .use(prodPlugin)
     .use(categoriesPlugin)
     .use(suppPlugin)
 

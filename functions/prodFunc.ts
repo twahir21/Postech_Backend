@@ -9,13 +9,13 @@ export const prodPost = async ({ body, headers }: {body: productTypes, headers: 
     try{
         // validating product data
         const schema = z.object({
-            name: z.string().min(3, await(getTranslation(lang, "ProdNameErr"))),
-            company: z.string().min(3, "Company name cannot have less than 3 characters"),
-            priceBought: z.number().min(1, "Price bought cannot be less than 1"),
-            priceSold: z.number().min(1, "Price sold cannot be less than 1"),
-            stock: z.number().min(0, "Stock cannot be negative"),
-            minStock: z.number().min(0, "Minimum stock can never be negative"),
-            unit: z.string().min(1, "Unit can never have less than 1 character")
+            name: z.string().min(3, await getTranslation(lang, "ProdNameErr")),
+            company: z.string().min(3, await getTranslation(lang, "nameErr")),
+            priceBought: z.number().min(1, await getTranslation(lang, "priceErr")),
+            priceSold: z.number().min(1, await getTranslation(lang, "priceErr")),
+            stock: z.number().min(0, await getTranslation(lang, "stockErr")),
+            minStock: z.number().min(0, await getTranslation(lang, "stockErr")),
+            unit: z.string().min(1, await getTranslation(lang, "unitErr"))
         });
     
         const parsed = schema.safeParse(body);

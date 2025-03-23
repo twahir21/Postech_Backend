@@ -21,5 +21,9 @@
     "save": "Data saved successfully",
     "delMsg": "Data deleted successfully",
 
-    "contactErr": "Contact cannot have less than 4 characters"
+    "contactErr": "Contact cannot have less than 4 characters",
+
+    "priceErr": "Price cannot be less than 1",
+    "stockErr": "Stock can never be negative",
+    "unitErr": "Unit can never have less than 1 character"
 }

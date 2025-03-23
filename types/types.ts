@@ -21,7 +21,6 @@ export interface headTypes {
 
 export interface categoriesTypes {
     name?: string;
-    company?: string;
 }
 
 export interface suppTypes {

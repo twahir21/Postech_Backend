@@ -15,7 +15,6 @@ export const categPost = async ({ body, headers, params }: { body : categoriesTy
     // validate the data
     const schema = z.object({
         name: z.string().min(3, await getTranslation(lang, "nameErr")),
-        company: z.string().min(3, await getTranslation(lang, "nameErr"))
     });
 
     const parse = schema.safeParse(body);
@@ -35,13 +34,12 @@ export const categPost = async ({ body, headers, params }: { body : categoriesTy
             message: await getTranslation(lang, "idErr")
         }
     }
-    const { name, company }: categoriesTypes = parse.data;
+    const { name }: categoriesTypes = parse.data;
 
     // now save to database
     await mainDb.insert(categories).values({
         shopId,
         name,
-        company
     });
 
     return {
@@ -105,7 +103,6 @@ export const categPut = async ({ body, headers, params }: { body : categoriesTyp
     // validate the data
     const schema = z.object({
         name: z.string().min(3, await getTranslation(lang, "nameErr")),
-        company: z.string().min(3, await getTranslation(lang, "nameErr")),
     });
 
     const parse = schema.safeParse(body);
@@ -118,7 +115,7 @@ export const categPut = async ({ body, headers, params }: { body : categoriesTyp
     }
 
     // now extract
-    const { name, company }: categoriesTypes = parse.data;
+    const { name }: categoriesTypes = parse.data;
 
     // extract id from params
     const { id } = params;
@@ -136,7 +133,6 @@ export const categPut = async ({ body, headers, params }: { body : categoriesTyp
         .update(categories)
         .set({
             name,
-            company
         })
         .where(eq(categories.id, id));
 
