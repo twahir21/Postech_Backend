@@ -20,7 +20,7 @@ export interface headTypes {
 }
 
 export interface categoriesTypes {
-    name?: string;
+    generalName?: string;
 }
 
 export interface suppTypes {
