@@ -6,6 +6,7 @@ import type { categoriesTypes, headTypes } from "../types/types";
 import { mainDb } from "../database/schema/connections/mainDb";
 import { categories } from "../database/schema/shop";
 import { eq } from "drizzle-orm";
+import xss from "xss";
 
 // post 
 export const categPost = async ({ body, headers, params }: { body : categoriesTypes, headers: headTypes, params: {shopId: string}}) => {
@@ -34,7 +35,10 @@ export const categPost = async ({ body, headers, params }: { body : categoriesTy
             message: await getTranslation(lang, "idErr")
         }
     }
-    const { generalName }: categoriesTypes = parse.data;
+    let { generalName }: categoriesTypes = parse.data;
+
+    // sanitize xss
+    generalName = xss(generalName);
 
     // now save to database
     await mainDb.insert(categories).values({
@@ -115,7 +119,10 @@ export const categPut = async ({ body, headers, params }: { body : categoriesTyp
     }
 
     // now extract
-    const { generalName }: categoriesTypes = parse.data;
+    let { generalName }: categoriesTypes = parse.data;
+
+    // prevent xss
+    generalName = xss(generalName)
 
     // extract id from params
     const { id } = params;

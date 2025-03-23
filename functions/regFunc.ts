@@ -5,7 +5,6 @@ import { shops, shopUsers, users } from "../database/schema/shop";
 import { hashPassword } from "./security/hash";
 import { getTranslation } from "./translation";
 import { eq } from "drizzle-orm"; // Ensure this is imported for querying
-import xss from "xss";
 
 export const regPost = async ({ body, headers }: { body: registerRequest; headers: headTypes }) => {
     const lang = headers["accept-language"]?.split(",")[0] || "en";
@@ -28,19 +27,14 @@ export const regPost = async ({ body, headers }: { body: registerRequest; header
             };
         }
 
-        let { name, username, email, password }: registerRequest = parsed.data;
-
-        // 🛡️ **Sanitize Inputs**
-        name = xss(name);
-        username = xss(username);
-        email = xss(email);
+        const { name, username, email, password }: registerRequest = parsed.data;
 
         // Check if the email is already registered
         const existingUser = await mainDb.select().from(users).where(eq(users.email, email)).limit(1);
         if (existingUser.length > 0) {
             return {
                 success: false,
-                message: xss(await getTranslation(lang, "emailExistsErr")),
+                message: await getTranslation(lang, "emailExistsErr"),
             };
         }
 
@@ -49,7 +43,7 @@ export const regPost = async ({ body, headers }: { body: registerRequest; header
         if (existingShop.length > 0) {
             return {
                 success: false,
-                message: xss(await getTranslation(lang, "shopExistsErr")),
+                message: await getTranslation(lang, "shopExistsErr"),
             };
         }
 
@@ -69,7 +63,7 @@ export const regPost = async ({ body, headers }: { body: registerRequest; header
         if (!user) {
             return {
                 success: false,
-                message: xss(await getTranslation(lang, "userErr")),
+                message: await getTranslation(lang, "userErr"),
             };
         }
 
@@ -84,7 +78,7 @@ export const regPost = async ({ body, headers }: { body: registerRequest; header
         if (!shop) {
             return {
                 success: false,
-                message: xss(await getTranslation(lang, "shopCreateErr")),
+                message: await getTranslation(lang, "shopCreateErr"),
             };
         }
 
@@ -97,7 +91,7 @@ export const regPost = async ({ body, headers }: { body: registerRequest; header
 
         return {
             success: true,
-            message: xss(await getTranslation(lang, "regMessage")),
+            message: await getTranslation(lang, "regMessage"),
         };
     } catch (error) {
         if (error instanceof Error) {
@@ -107,7 +101,7 @@ export const regPost = async ({ body, headers }: { body: registerRequest; header
             };
         } else {
             return {
-                message: xss(await getTranslation(lang, "serverErr")),
+                message: await getTranslation(lang, "serverErr"),
                 success: false,
             };
         }
