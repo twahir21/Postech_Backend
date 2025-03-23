@@ -1,6 +1,8 @@
 import { z } from "zod"
 import type { headTypes, productTypes } from "../types/types";
 import { getTranslation } from "./translation";
+import xss from "xss";
+import { sanitizeNumber, sanitizeString } from "./security/xss";
 
 // implementing crud for products 
 export const prodPost = async ({ body, headers }: {body: productTypes, headers: headTypes}) => {
@@ -26,7 +28,16 @@ export const prodPost = async ({ body, headers }: {body: productTypes, headers: 
             }
         }
 
-        const {name, company, priceBought, priceSold, stock, minStock}: productTypes = parsed.data;
+        let  {name, company, priceBought, priceSold, stock, minStock}: productTypes = parsed.data;
+
+        // sanitize or remove xss scripts if available
+        name = sanitizeString(name);
+        company = sanitizeString(company);
+        priceBought = sanitizeNumber(priceBought);
+        priceSold = sanitizeNumber(priceSold);
+        stock = sanitizeNumber(stock);
+        minStock = sanitizeNumber(minStock);
+
         
         // now save to database
         return {
@@ -42,7 +53,7 @@ export const prodPost = async ({ body, headers }: {body: productTypes, headers: 
             }
         }else{
             return {
-                messsage: await getTranslation(lang, "serverErr"),
+                messsage: sanitizeString(await getTranslation(lang, "serverErr")),
                 success: false
             }
         }

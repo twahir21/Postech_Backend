@@ -6,6 +6,7 @@ import type { headTypes, suppTypes } from "../types/types";
 import { mainDb } from "../database/schema/connections/mainDb";
 import { suppliers } from "../database/schema/shop";
 import { eq } from "drizzle-orm";
+import { sanitizeString } from "./security/xss";
 
 // post 
 export const suppPost = async ({ body, headers, params}: { body : suppTypes, headers: headTypes, params : { shopId: string}}) => {
@@ -28,7 +29,11 @@ export const suppPost = async ({ body, headers, params}: { body : suppTypes, hea
     }
 
     // now extract
-    const { company, contact }: suppTypes = parse.data;
+    let { company, contact }: suppTypes = parse.data;
+
+    // remove xss scripts if availabe
+    company = sanitizeString(company);
+    contact = sanitizeString(contact);
 
     const { shopId } = params;
 
@@ -113,7 +118,11 @@ export const suppPut = async ({ body, headers, params }: { body : suppTypes, hea
     }
 
     // now extract
-    const { company, contact }: suppTypes = parse.data;
+    let { company, contact }: suppTypes = parse.data;
+
+    // sanitize to remove xss
+    company = sanitizeString(company);
+    contact = sanitizeString(contact);
 
     // extract id from params
     const { id } = params;

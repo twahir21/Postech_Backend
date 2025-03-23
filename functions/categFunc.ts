@@ -7,6 +7,7 @@ import { mainDb } from "../database/schema/connections/mainDb";
 import { categories } from "../database/schema/shop";
 import { eq } from "drizzle-orm";
 import xss from "xss";
+import { sanitizeString } from "./security/xss";
 
 // post 
 export const categPost = async ({ body, headers, params }: { body : categoriesTypes, headers: headTypes, params: {shopId: string}}) => {
@@ -32,7 +33,7 @@ export const categPost = async ({ body, headers, params }: { body : categoriesTy
     if (!shopId || shopId.length < 5) {
         return {
             success: false,
-            message: await getTranslation(lang, "idErr")
+            message: sanitizeString(await getTranslation(lang, "idErr"))
         }
     }
     let { generalName }: categoriesTypes = parse.data;
@@ -48,7 +49,7 @@ export const categPost = async ({ body, headers, params }: { body : categoriesTy
 
     return {
         success: true,
-        message: await getTranslation(lang, "categMsg")
+        message: sanitizeString(await getTranslation(lang, "categMsg"))
     }
 
     } catch (error) {
@@ -60,7 +61,7 @@ export const categPost = async ({ body, headers, params }: { body : categoriesTy
         }else{
             return{
                 success: false,
-                message: await getTranslation(lang, "serverErr")
+                message: sanitizeString(await getTranslation(lang, "serverErr"))
             }
         }
     }
@@ -75,13 +76,13 @@ export const categGet = async ({headers} : {headers: headTypes}) => {
         if(allCateg.length === 0) {
             return {
                 success: false,
-                message: await getTranslation(lang, "notFound")
+                message: sanitizeString(await getTranslation(lang, "notFound"))
             }
         }
 
         return {
             success: true,
-            message: await getTranslation(lang, "success"),
+            message: sanitizeString(await getTranslation(lang, "success")),
             data: allCateg
         }
     } catch (error) {
@@ -193,13 +194,13 @@ export const categDel = async ({ headers, params}: {headers: headTypes, params: 
         if (!categDel) {
             return {
                 success: false,
-                message: await getTranslation(lang, "notFound")
+                message: sanitizeString(await getTranslation(lang, "notFound"))
             }
         }
 
         return{
             success: true,
-            message: await getTranslation(lang, "delMsg")
+            message: sanitizeString(await getTranslation(lang, "delMsg"))
         }
     } catch (error) {
         if (error instanceof Error){
@@ -210,7 +211,7 @@ export const categDel = async ({ headers, params}: {headers: headTypes, params: 
         }else{
             return {
                 success: false,
-                message: await getTranslation(lang, "serverErr")
+                message: sanitizeString(await getTranslation(lang, "serverErr"))
             }
         }
     }
@@ -235,7 +236,7 @@ export const categGetOne = async ({headers, params} : {headers: headTypes, param
         if(oneCateg.length === 0) {
             return {
                 success: false,
-                message: await getTranslation(lang, "notFound")
+                message: sanitizeString(await getTranslation(lang, "notFound"))
             }
         }
 
@@ -253,7 +254,7 @@ export const categGetOne = async ({headers, params} : {headers: headTypes, param
         }else{
             return {
                 success: false,
-                message: await getTranslation(lang, "serverErr")
+                message: sanitizeString(await getTranslation(lang, "serverErr"))
             }
         }
     }
