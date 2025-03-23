@@ -10,7 +10,6 @@ export const prodPost = async ({ body, headers }: {body: productTypes, headers: 
         // validating product data
         const schema = z.object({
             name: z.string().min(3, await getTranslation(lang, "ProdNameErr")),
-            company: z.string().min(3, await getTranslation(lang, "nameErr")),
             priceBought: z.number().min(1, await getTranslation(lang, "priceErr")),
             priceSold: z.number().min(1, await getTranslation(lang, "priceErr")),
             stock: z.number().min(0, await getTranslation(lang, "stockErr")),

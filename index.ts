@@ -8,8 +8,12 @@ import { setupI18n } from "./functions/translation";
 
 // initialize translation before start the server
 await setupI18n();
-
 new Elysia()
+    // set CSP for security headers for prevent XSS
+    .onRequest(({ set }) => {
+        set.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'";
+    })
+
     .use(homePlugin)
     // .use(qrCodePlugin)
     .use(regPlugin)
