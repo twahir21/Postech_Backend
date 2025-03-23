@@ -3,7 +3,7 @@ import { suppDel, suppGet, suppGetOne, suppPost, suppPut } from "../functions/su
 
 const suppPlugin = new Elysia()
     .get("/suppliers", suppGet)
-    .post("/suppliers", suppPost)
+    .post("/suppliers/:shopId", suppPost)
     .put("/suppliers/:id", suppPut)
     .delete("/suppliers/:id", suppDel)
     .get("/suppliers/:id", suppGetOne)

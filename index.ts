@@ -16,7 +16,7 @@ new Elysia()
     // .use(usersRoute)
     // .use(prodPlugin)
     .use(categoriesPlugin)
-    // .use(suppPlugin)
+    .use(suppPlugin)
 
 .listen(3000);
 

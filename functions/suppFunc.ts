@@ -8,7 +8,7 @@ import { suppliers } from "../database/schema/shop";
 import { eq } from "drizzle-orm";
 
 // post 
-export const suppPost = async ({ body, headers }: { body : suppTypes, headers: headTypes}) => {
+export const suppPost = async ({ body, headers, params}: { body : suppTypes, headers: headTypes, params : { shopId: string}}) => {
     const lang = headers["accept-language"]?.split(",")[0] || "sw";
     try {
     
@@ -30,8 +30,11 @@ export const suppPost = async ({ body, headers }: { body : suppTypes, headers: h
     // now extract
     const { name, contact }: suppTypes = parse.data;
 
+    const { shopId } = params;
+
     // now save to database
     await mainDb.insert(suppliers).values({
+        shopId,
         name,
         contact
     });
