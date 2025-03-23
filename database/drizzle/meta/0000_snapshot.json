@@ -1,5 +1,5 @@
 {
-  "id": "900808a3-c9fe-491a-9791-5559ba8856d3",
+  "id": "f1ae3466-c8e7-4f2f-8322-d52d4b9a75c1",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -248,12 +248,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "company": {
-          "name": "company",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
         "shop_id": {
           "name": "shop_id",
           "type": "uuid",
@@ -267,12 +261,6 @@
           "columns": [
             {
               "expression": "name",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "company",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -586,12 +574,6 @@
         },
         "name": {
           "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "company": {
-          "name": "company",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -1150,8 +1132,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "name": {
-          "name": "name",
+        "company": {
+          "name": "company",
           "type": "text",
           "primaryKey": false,
           "notNull": true

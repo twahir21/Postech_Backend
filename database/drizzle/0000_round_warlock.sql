@@ -27,7 +27,6 @@ CREATE TABLE "asked_products" (
 CREATE TABLE "categories" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
-	"company" text NOT NULL,
 	"shop_id" uuid NOT NULL
 );
 --> statement-breakpoint
@@ -68,7 +67,6 @@ CREATE TABLE "expenses" (
 CREATE TABLE "products" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
-	"company" text NOT NULL,
 	"category_id" uuid,
 	"price_bought" numeric NOT NULL,
 	"price_sold" numeric NOT NULL,
@@ -128,7 +126,7 @@ CREATE TABLE "supplier_price_history" (
 --> statement-breakpoint
 CREATE TABLE "suppliers" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"name" text NOT NULL,
+	"company" text NOT NULL,
 	"contact" text NOT NULL,
 	"shop_id" uuid NOT NULL,
 	"most_sold_product" uuid,
@@ -170,7 +168,7 @@ ALTER TABLE "supplier_price_history" ADD CONSTRAINT "supplier_price_history_supp
 ALTER TABLE "supplier_price_history" ADD CONSTRAINT "supplier_price_history_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "supplier_price_history" ADD CONSTRAINT "supplier_price_history_shop_id_shops_id_fk" FOREIGN KEY ("shop_id") REFERENCES "public"."shops"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "suppliers" ADD CONSTRAINT "suppliers_shop_id_shops_id_fk" FOREIGN KEY ("shop_id") REFERENCES "public"."shops"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-CREATE UNIQUE INDEX "unique_category" ON "categories" USING btree ("name","company","shop_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "unique_category" ON "categories" USING btree ("name","shop_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "unique_user_role" ON "shop_users" USING btree ("shop_id","user_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "unique_supplier_product" ON "supplier_price_history" USING btree ("supplier_id","product_id","shop_id");--> statement-breakpoint
 CREATE INDEX "idx_email" ON "users" USING btree ("email");

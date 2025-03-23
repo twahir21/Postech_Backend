@@ -15,6 +15,11 @@
     "notFound": "Hakuna kilichopatikana katika hifadhi",
 
     "idErr": "ID haiwezi kuwa tupu au kuwa na tarakimu chini ya 5",
+    "userErr": "Mtumiaji ameshindwa kusajiliwa",
+    "shopCreateErr": "Duka limeshindwa kusajiliwa",
+    "emailExistsErr": "Barua pepe (email) uliyotumia tayari imesajiliwa",
+    "shopExistsErr": "Jina la duka ulilolitumia tayari limesajiliwa",
+
 
     "success": "Taarifa zimepatikana kiukamilifu",
     "save": "Taarifa zimehifadhiwa kiukamilifu",

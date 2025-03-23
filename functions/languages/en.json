@@ -15,6 +15,10 @@
     "notFound": "Nothing found in the database!",
 
     "idErr": "ID cannot have less than 5 digits or empty",
+    "userErr": "User creation failed",
+    "shopCreateErr": "Shop creation failed",
+    "emailExistsErr": "Email used is already exist",
+    "shopExistsErr": "Shop_name used is already exist",
 
     "success": "Data fetched successfully",
     "update": "Data updated successfully",
