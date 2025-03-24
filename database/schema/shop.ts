@@ -15,7 +15,7 @@ import {
   // -----------------
   export const users = pgTable("users", {
       id: uuid("id").defaultRandom().primaryKey(),
-      username: text("username").notNull(),
+      username: text("username").notNull().unique(),
       email: text("email").unique().notNull(),
       password: text("password").notNull(),
       role: text("role").notNull().default("owner"), // Default role is "owner"

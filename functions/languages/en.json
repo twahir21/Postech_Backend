@@ -19,6 +19,7 @@
     "shopCreateErr": "Shop creation failed",
     "emailExistsErr": "Email used is already exist",
     "shopExistsErr": "Shop_name used is already exist",
+    "noShopErr": "No shop found, please register first",
 
     "success": "Data fetched successfully",
     "update": "Data updated successfully",
@@ -29,5 +30,6 @@
 
     "priceErr": "Price cannot be less than 1",
     "stockErr": "Stock can never be negative",
-    "unitErr": "Unit can never have less than 1 character"
+    "unitErr": "Unit can never have less than 1 character",
+    "loginErr": "Invalid credentials"
 }

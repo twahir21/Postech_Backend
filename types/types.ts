@@ -27,3 +27,9 @@ export interface suppTypes {
     company?: string;
     contact?: string;
 }
+
+export interface loginTypes {
+    username?: string;
+    password?: string;
+}
+
