@@ -28,6 +28,7 @@ interface LoginContext {
 export const loginPlugin = new Elysia()
     .use(jwt({
         secret: process.env.JWT_SECRET!,
+        algorithm: 'HS256', // Explicitly set
         exp: '7d'
     }))
     .post('/login', async ({ body, setCookie, jwt, headers }: LoginContext) => {
