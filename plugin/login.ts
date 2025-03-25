@@ -5,7 +5,8 @@ import argon2 from 'argon2'; // For hashing passwords
 import { mainDb } from '../database/schema/connections/mainDb';
 import { users, shopUsers } from '../database/schema/shop';
 import { eq } from 'drizzle-orm';
-import type { loginTypes } from '../types/types';
+import { getTranslation } from '../functions/translation';
+import { sanitizeString } from '../functions/security/xss';
 
 const JWT_SECRET = process.env.JWT_TOKEN || "something@#morecomplicated<>es>??><Ess5%";
 
@@ -17,18 +18,31 @@ export const loginPlugin = new Elysia()
             secret: JWT_SECRET,  // Secret for JWT
         })
     )
-    .post('/login', async ({ body, jwt, cookie }: {body: loginTypes, jwt: any, cookie: any}) => {
-        const { username, password } = body;
+    .post('/login', async ({ body, jwt, cookie, headers }) => {
+        const lang = headers["accept-language"]?.split(",")[0] || "sw";
+
+        try {
+        let { username, password }: any = body;
+        // sanitize
+        username = sanitizeString(username);
+        password = sanitizeString(password);
+
 
         // Check for missing credentials
         if (!username || !password) {
-            return { success: false, message: 'Username and password required' };
+            return { 
+                success: false, 
+                message:  await getTranslation(lang, "missingCredentials")
+            };
         }
 
         // Fetch user from the database
         const user = await mainDb.select().from(users).where(eq(users.username, username)).limit(1);
         if (!user.length) {
-            return { success: false, message: 'Invalid credentials' };
+            return { 
+                success: false, 
+                message: await getTranslation(lang, "loginErr")
+            };
         }
 
         const userData = user[0];
@@ -36,7 +50,7 @@ export const loginPlugin = new Elysia()
         // Verify password with Argon2
         const isValidPassword = await argon2.verify(userData.password, password);
         if (!isValidPassword) {
-            return { success: false, message: 'Invalid credentials' };
+            return { success: false, message: await getTranslation(lang, "loginErr") };
         }
 
         // Fetch associated shopId
@@ -49,6 +63,13 @@ export const loginPlugin = new Elysia()
 
         // Generate JWT with user and shop info
         const token = await jwt.sign({ userId: userData.id, shopId });
+
+        if (!token) {
+            return {
+                success: false,
+                message: await getTranslation(lang, "noToken")
+            }
+        }
 
         // Set JWT in a cookie with options
         cookie.auth.set({
@@ -65,18 +86,17 @@ export const loginPlugin = new Elysia()
             message: `Successfully logged in as ${username}`,
             token,
         };
-    })
-    .get('/profile', async ({ jwt, cookie, error }) => {
-        // Verify the JWT from the cookie
-        const profile = await jwt.verify(cookie.auth.value);
-
-        if (!profile) {
-            return error(401, { success: false, message: 'Unauthorized' });
+        } catch (error) {
+            if (error instanceof Error) {
+                return {
+                    success: false,
+                    message: error.message
+                }
+            }else{
+                return {
+                    success: false,
+                    message: await getTranslation(lang, "serverErr")
+                }
+            }
         }
-
-        return {
-            success: true,
-            message: `Hello ${profile.username}`,
-            user: profile,
-        };
     })

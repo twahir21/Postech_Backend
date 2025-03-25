@@ -34,5 +34,6 @@
     "loginErr": "Invalid credentials",
 
     "invalidToken": "Access Denied! Invalid Token",
-    "noToken": "Acess Denied! No token provided"
+    "noToken": "Acess Denied! No token provided",
+    "missingCredentials": "Username and password are required"
 }

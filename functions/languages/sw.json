@@ -19,12 +19,21 @@
     "shopCreateErr": "Duka limeshindwa kusajiliwa",
     "emailExistsErr": "Barua pepe (email) uliyotumia tayari imesajiliwa",
     "shopExistsErr": "Jina la duka ulilolitumia tayari limesajiliwa",
-
+    "noShopErr": "Hakuna duka lililopatikana, tafadhali jisajili kwanza",
 
     "success": "Taarifa zimepatikana kiukamilifu",
     "save": "Taarifa zimehifadhiwa kiukamilifu",
     "update": "Taarifa zimebadilisha na kuhifadhiwa kiukamilifu",
     "delMsg" : "Taarifa zimefutwa kiukamilifu",
 
-    "contactErr": "Mawasiliano hayawezi kuwa na herufi (tarakimu) chini ya 4"
+    "contactErr": "Mawasiliano hayawezi kuwa na herufi (tarakimu) chini ya 4",
+
+    "priceErr": "Bei haiwezi kuwa chini ya shilingi moja",
+    "stockErr": "Kiasi cha mzigo hakiwezi kuwa hasi",
+    "unitErr": "unit ya bidhaa haiwezi kuwa na herufi chini ya moja",
+    "loginErr": "Taarifa za uhakiki sio sahihi",
+
+    "invalidToken": "Umezuiliwa, token sio sahihi",
+    "noToken": "Umezuiliwa, hakuna token yoyote",
+    "missingCredentials": "Jina la mtumiaji na nenosiri vinatakiwa"
 }
