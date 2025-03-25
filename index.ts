@@ -12,6 +12,7 @@ import categoriesPlugin from "./plugin/categories";
 import suppPlugin from "./plugin/supplier";
 import { rateLimitMiddleware } from "./functions/security/rateLimiting";
 import { loginPlugin } from "./plugin/login";
+import { prodPlugin } from "./plugin/products";
 
 
 // initialize translation before start the server
@@ -39,6 +40,7 @@ new Elysia()
     .use(loginPlugin)
     .use(categoriesPlugin)
     .use(suppPlugin)
+    .use(prodPlugin)
 
 .listen(3000);
 

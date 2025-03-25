@@ -61,12 +61,8 @@ export const prodPost = async ({ body, headers }: {body: productTypes, headers: 
 
 
 export const prodGet = ({userId, shopId}: any) => {
-    if (!shopId || !userId) {
-        return {
-            message: "please login first"
-        }
-    }
     return {
-        shopId, userId
+        shopId, 
+        userId
     }
 }
