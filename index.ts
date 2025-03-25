@@ -3,7 +3,6 @@ import homePlugin from "./plugin/home";
 import qrCodePlugin from "./plugin/qrcode";
 import regPlugin from "./plugin/registration";
 import usersRoute from "./functions/usersFunc";
-import prodPlugin from "./plugin/products";
 import { setupI18n } from "./functions/translation";
 import { cors } from "@elysiajs/cors";
 
@@ -38,7 +37,6 @@ new Elysia()
     .use(regPlugin)
     // .use(usersRoute)
     .use(loginPlugin)
-    .use(prodPlugin)
     .use(categoriesPlugin)
     .use(suppPlugin)
 
