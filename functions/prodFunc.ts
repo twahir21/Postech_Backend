@@ -1,7 +1,6 @@
 import { z } from "zod"
 import type { headTypes, productTypes } from "../types/types";
 import { getTranslation } from "./translation";
-import xss from "xss";
 import { sanitizeNumber, sanitizeString } from "./security/xss";
 
 // implementing crud for products 
@@ -57,5 +56,17 @@ export const prodPost = async ({ body, headers }: {body: productTypes, headers: 
                 success: false
             }
         }
+    }
+}
+
+
+export const prodGet = ({userId, shopId}: any) => {
+    if (!shopId || !userId) {
+        return {
+            message: "please login first"
+        }
+    }
+    return {
+        shopId, userId
     }
 }

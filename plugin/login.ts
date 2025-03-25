@@ -1,113 +1,82 @@
-import { Elysia, t } from 'elysia';
-import { jwt, type JWTPayloadSpec } from '@elysiajs/jwt';
-import { users, shopUsers } from '../database/schema/shop';
-import argon2 from 'argon2';
+import { Elysia } from 'elysia';
+import { cookie } from '@elysiajs/cookie';
+import { jwt } from '@elysiajs/jwt';
+import argon2 from 'argon2'; // For hashing passwords
 import { mainDb } from '../database/schema/connections/mainDb';
+import { users, shopUsers } from '../database/schema/shop';
 import { eq } from 'drizzle-orm';
-import { getTranslation } from '../functions/translation';
-import type { headTypes, loginTypes } from '../types/types';
-import { z } from 'zod';
-import { sanitizeString } from '../functions/security/xss';
+import type { loginTypes } from '../types/types';
 
-// Define JWT Payload Type
-interface AuthPayload extends JWTPayloadSpec {
-    userId: string;
-    shopId: string;
-}
-
-// Define Request Context Type
-interface LoginContext {
-    body: loginTypes;
-    headers: headTypes;
-    jwt: {
-        sign: (payload: AuthPayload) => Promise<string>;
-    };
-    setCookie: (name: string, value: string, options?: Record<string, unknown>) => void;
-}
+const JWT_SECRET = process.env.JWT_TOKEN || "something@#morecomplicated<>es>??><Ess5%";
 
 export const loginPlugin = new Elysia()
-    .use(jwt({
-        secret: process.env.JWT_SECRET!,
-        algorithm: 'HS256', // Explicitly set
-        exp: '7d'
-    }))
-    .post('/login', async ({ body, setCookie, jwt, headers }: LoginContext) => {
-        const lang = headers['accept-language']?.split(',')[0] || 'sw';
+    .use(cookie()) // Use cookie plugin
+    .use(
+        jwt({
+            name: 'jwt',
+            secret: JWT_SECRET,  // Secret for JWT
+        })
+    )
+    .post('/login', async ({ body, jwt, cookie }: {body: loginTypes, jwt: any, cookie: any}) => {
+        const { username, password } = body;
 
-        try {
-            const schema = z.object({
-                username: z.string().min(3, await getTranslation(lang, "usernameErr")),
-                password: z.string().min(6, await getTranslation(lang, "passErr"))
-            }); 
-            const parsed = schema.safeParse(body);
-
-            if (!parsed.success) {
-                return {
-                    success: false,
-                    message: parsed.error.format()
-                }
-            }
-            // now extract data from users and sanitize
-            let { username, password } : loginTypes = body;
-
-            username = sanitizeString(username);
-            password = sanitizeString (password);
-
-            // Find user by username
-            const user = await mainDb.select().from(users).where(eq(users.username, username)).limit(1);
-            if (!user.length) {
-                return {
-                    success: false,
-                    message: await getTranslation(lang, 'loginErr')
-                };
-            }
-
-            const userData = user[0];
-
-
-            // Verify password with Argon2
-            const isValidPassword = await argon2.verify(userData.password, password);
-            if (!isValidPassword) {
-                return {
-                    success: false,
-                    message: await getTranslation(lang, 'loginErr')
-                };
-            }
-
-            // Get all shopIds associated with the user
-            const shops = await mainDb.select().from(shopUsers).where(eq(shopUsers.userId, userData.id));
-            if (!shops.length) {
-                return {
-                    success: false,
-                    message: await getTranslation(lang, 'noShopErr')
-                };
-            }
-
-            const shopId = shops[0].shopId; // Default to first shop
-
-            // Generate JWT
-            const token = await jwt.sign({ userId: userData.id, shopId });
-
-            // Set JWT cookie
-            setCookie('auth_token', token, {
-                httpOnly: true,
-                secure: true,
-                sameSite: 'Strict',
-                maxAge: 7 * 24 * 60 * 60 // 7 days
-            });
-
-            return { success: true, token };
-        } catch (error) {
-            if(error instanceof Error) {
-                return {
-                    success: false,
-                    message: error.message
-                }
-            }else{
-                return{
-                    success: false,
-                    message: await getTranslation(lang, "serverErr")
-                }
-            }
+        // Check for missing credentials
+        if (!username || !password) {
+            return { success: false, message: 'Username and password required' };
         }
-    });
+
+        // Fetch user from the database
+        const user = await mainDb.select().from(users).where(eq(users.username, username)).limit(1);
+        if (!user.length) {
+            return { success: false, message: 'Invalid credentials' };
+        }
+
+        const userData = user[0];
+
+        // Verify password with Argon2
+        const isValidPassword = await argon2.verify(userData.password, password);
+        if (!isValidPassword) {
+            return { success: false, message: 'Invalid credentials' };
+        }
+
+        // Fetch associated shopId
+        const shop = await mainDb.select().from(shopUsers).where(eq(shopUsers.userId, userData.id)).limit(1);
+        if (!shop.length) {
+            return { success: false, message: 'No shop assigned to this user' };
+        }
+
+        const shopId = shop[0].shopId;
+
+        // Generate JWT with user and shop info
+        const token = await jwt.sign({ userId: userData.id, shopId });
+
+        // Set JWT in a cookie with options
+        cookie.auth.set({
+            value: token,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production', // Only send over HTTPS in production
+            sameSite: 'strict',
+            maxAge: 7 * 86400,  // 7 days
+            path: '/',
+        });
+
+        return {
+            success: true,
+            message: `Successfully logged in as ${username}`,
+            token,
+        };
+    })
+    .get('/profile', async ({ jwt, cookie, error }) => {
+        // Verify the JWT from the cookie
+        const profile = await jwt.verify(cookie.auth.value);
+
+        if (!profile) {
+            return error(401, { success: false, message: 'Unauthorized' });
+        }
+
+        return {
+            success: true,
+            message: `Hello ${profile.username}`,
+            user: profile,
+        };
+    })

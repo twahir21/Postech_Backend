@@ -31,5 +31,8 @@
     "priceErr": "Price cannot be less than 1",
     "stockErr": "Stock can never be negative",
     "unitErr": "Unit can never have less than 1 character",
-    "loginErr": "Invalid credentials"
+    "loginErr": "Invalid credentials",
+
+    "invalidToken": "Access Denied! Invalid Token",
+    "noToken": "Acess Denied! No token provided"
 }

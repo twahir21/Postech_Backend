@@ -16,6 +16,7 @@
     "typescript": "^5.8.2"
   },
   "dependencies": {
+    "@elysiajs/cookie": "^0.8.0",
     "@elysiajs/cors": "^1.2.0",
     "@elysiajs/jwt": "^1.2.0",
     "@lucia-auth/adapter-drizzle": "^1.1.0",
@@ -29,7 +30,6 @@
     "i18next": "^24.2.3",
     "i18next-fs-backend": "^2.6.0",
     "ioredis": "^5.6.0",
-    "jose": "^6.0.10",
     "jsonwebtoken": "^9.0.2",
     "lru-cache": "^11.0.2",
     "lucia": "^3.2.2",

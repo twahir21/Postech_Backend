@@ -1,8 +1,11 @@
 import Elysia from "elysia";
-import { prodPost } from "../functions/prodFunc";
+import { prodGet, prodPost } from "../functions/prodFunc";
+import { authMiddleware } from "../middlewares/authMid";
 
 const prodPlugin = new Elysia ()
-    .post("/products/:shopId", prodPost)
+    .use(authMiddleware)
+    .post("/products/", async ({userId, shopId}: any) => await prodPost({userId, shopId}))
+    .get("/products/", ({userId, shopId}: any) => prodGet({userId, shopId}))
 
 
 export default prodPlugin
