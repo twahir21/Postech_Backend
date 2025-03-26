@@ -10,13 +10,16 @@ import xss from "xss";
 import { sanitizeString } from "./security/xss";
 
 // post 
-export const categPost = async ({ body, headers, params }: { body : categoriesTypes, headers: headTypes, params: {shopId: string}}) => {
+export const categPost = async ({ body, headers, shopId, userId }: { body : categoriesTypes, headers: headTypes, shopId: string, userId: string}) => {
     const lang = headers["accept-language"]?.split(",")[0] || "sw";
     try {
+        const nameErr = await getTranslation(lang, "nameErr");
+        const idErr = await getTranslation(lang, "idErr");
+        const categMsg = await getTranslation(lang, "categMsg");
     
     // validate the data
     const schema = z.object({
-        generalName: z.string().min(3, await getTranslation(lang, "nameErr")),
+        generalName: z.string().min(3, nameErr),
     });
 
     const parse = schema.safeParse(body);
@@ -29,11 +32,10 @@ export const categPost = async ({ body, headers, params }: { body : categoriesTy
     }
 
     // now extract
-    const { shopId } = params;
     if (!shopId || shopId.length < 5) {
         return {
             success: false,
-            message: sanitizeString(await getTranslation(lang, "idErr"))
+            message: sanitizeString(idErr)
         }
     }
     let { generalName }: categoriesTypes = parse.data;
@@ -49,9 +51,8 @@ export const categPost = async ({ body, headers, params }: { body : categoriesTy
 
     return {
         success: true,
-        message: sanitizeString(await getTranslation(lang, "categMsg"))
+        message: sanitizeString(categMsg)
     }
-
     } catch (error) {
         if (error instanceof Error) {
             return {
