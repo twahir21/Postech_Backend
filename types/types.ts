@@ -13,6 +13,7 @@ export interface productTypes {
     priceSold?: number;
     stock?: number;
     minStock?: number;
+    unit?: string;
 }
 
 export interface headTypes {

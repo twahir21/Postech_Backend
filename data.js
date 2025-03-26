@@ -1,0 +1,2 @@
+categoryID = "99885b5e-ef06-4285-a5ca-2555123dc563";
+supplierId = "b8190095-268c-442d-b362-96b5028583c0"

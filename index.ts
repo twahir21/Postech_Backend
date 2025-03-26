@@ -14,6 +14,7 @@ import { rateLimitMiddleware } from "./functions/security/rateLimiting";
 import { loginPlugin } from "./plugin/login";
 import { prodPlugin } from "./plugin/products";
 
+const startTime = Date.now(); // Start time tracking
 
 // initialize translation before start the server
 await setupI18n();
@@ -43,6 +44,11 @@ new Elysia()
     .use(prodPlugin)
 
 .listen(3000);
+const endTime = Date.now(); // Start time tracking
+
+console.log(`Server Execution Time: ${endTime - startTime}ms`);
+
+
 
 console.log("Server is running in the link http://localhost:3000")
 

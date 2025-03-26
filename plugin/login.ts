@@ -61,7 +61,10 @@ export const loginPlugin = new Elysia()
             const shopId = shop[0].shopId;
 
             // Generate JWT with user and shop info
-            const token = await jwt.sign({ userId: userData.id, shopId });
+            const token = await jwt.sign({ 
+                userId: userData.id,
+                shopId
+            });
 
             if (!token) {
                 return {
@@ -73,7 +76,7 @@ export const loginPlugin = new Elysia()
             // Set JWT in a cookie with options
             cookie.auth.set({
                 value: token,
-                httpOnly: true,
+                httpOnly: true, // prevents JavaScript from stealing the cookie (if stealed user get authenticated)
                 secure: process.env.NODE_ENV === 'production', // Only send over HTTPS in production
                 sameSite: 'strict',
                 maxAge: 7 * 86400,  // 7 days
