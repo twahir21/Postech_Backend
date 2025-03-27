@@ -35,6 +35,7 @@
     "jsonwebtoken": "^9.0.2",
     "lru-cache": "^11.0.2",
     "lucia": "^3.2.2",
+    "pdf-lib": "^1.17.1",
     "pg": "^8.14.1",
     "postgres": "^3.4.5",
     "qrcode": "^1.5.4",

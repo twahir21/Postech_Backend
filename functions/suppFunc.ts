@@ -9,7 +9,7 @@ import { eq } from "drizzle-orm";
 import { sanitizeString } from "./security/xss";
 
 // post 
-export const suppPost = async ({ body, headers, params}: { body : suppTypes, headers: headTypes, params : { shopId: string}}) => {
+export const suppPost = async ({ body, headers, shopId}: { body : suppTypes, headers: headTypes, shopId: string}) => {
     const lang = headers["accept-language"]?.split(",")[0] || "sw";
     try {
     
@@ -34,8 +34,6 @@ export const suppPost = async ({ body, headers, params}: { body : suppTypes, hea
     // remove xss scripts if availabe
     company = sanitizeString(company);
     contact = sanitizeString(contact);
-
-    const { shopId } = params;
 
     // now save to database
     await mainDb.insert(suppliers).values({
@@ -98,7 +96,7 @@ export const suppGet = async ({headers} : {headers: headTypes}) => {
 }
 
 // update
-export const suppPut = async ({ body, headers, params }: { body : suppTypes, headers: headTypes, params: { id: string}}) => {
+export const suppPut = async ({ body, headers, supplierId }: { body : suppTypes, headers: headTypes, supplierId: string}) => {
     const lang = headers["accept-language"]?.split(",")[0] || "sw";
     try {
     
@@ -124,11 +122,9 @@ export const suppPut = async ({ body, headers, params }: { body : suppTypes, hea
     company = sanitizeString(company);
     contact = sanitizeString(contact);
 
-    // extract id from params
-    const { id } = params;
 
     // Validate ID length before querying (optional)
-    if (!id || id.length < 5) {
+    if (!supplierId || supplierId.length < 5) {
         return {
             success: false,
             message: await getTranslation(lang, "idErr")
@@ -142,7 +138,7 @@ export const suppPut = async ({ body, headers, params }: { body : suppTypes, hea
             company,
             contact
         })
-        .where(eq(suppliers.id, id));
+        .where(eq(suppliers.id, supplierId));
 
     if (!updateSupp) {
         return {
@@ -172,16 +168,14 @@ export const suppPut = async ({ body, headers, params }: { body : suppTypes, hea
 }
 
 // delete
-export const suppDel = async ({ headers, params}: {headers: headTypes, params: {id: string}}) => {
+export const suppDel = async ({ headers, supplierId}: {headers: headTypes, supplierId: string}) => {
     const lang = headers["accept-language"]?.split(",")[0] || "sw";
 
 
     try { 
-        // get id
-        const { id } = params;
 
         // Validate ID length before querying (optional)
-        if (!id || id.length < 5) {
+        if (!supplierId || supplierId.length < 5) {
             return {
                 success: false,
                 message: await getTranslation(lang, "idErr")
@@ -189,7 +183,7 @@ export const suppDel = async ({ headers, params}: {headers: headTypes, params: {
         }
 
         // delete from db
-        const suppDel = await mainDb.delete(suppliers).where(eq(suppliers.id, id));
+        const suppDel = await mainDb.delete(suppliers).where(eq(suppliers.id, supplierId));
 
         if (!suppDel) {
             return {
@@ -218,20 +212,19 @@ export const suppDel = async ({ headers, params}: {headers: headTypes, params: {
 } 
 
 // fetch one 
-export const suppGetOne = async ({headers, params} : {headers: headTypes, params: {id : string}}) => {
+export const suppGetOne = async ({headers, supplierId} : {headers: headTypes, supplierId: string}) => {
     const lang = headers["accept-language"]?.split(",")[0] || "sw";
     try {
-        const { id } = params;
 
         // Validate ID length before querying (optional)
-        if (!id || id.length < 5) {
+        if (!supplierId || supplierId.length < 5) {
             return {
                 success: false,
                 message: await getTranslation(lang, "idErr")
             };
         }
 
-        const oneSupp = await mainDb.select().from(suppliers).where(eq(suppliers.id, id));
+        const oneSupp = await mainDb.select().from(suppliers).where(eq(suppliers.id, supplierId));
 
         if(oneSupp.length === 0) {
             return {
