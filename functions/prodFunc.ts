@@ -2,6 +2,9 @@ import { z } from "zod"
 import type { headTypes, productTypes } from "../types/types";
 import { getTranslation } from "./translation";
 import { sanitizeNumber, sanitizeString } from "./security/xss";
+import { mainDb } from "../database/schema/connections/mainDb";
+import { products } from "../database/schema/shop";
+import { generateQRCodeWithLogo } from "./qrCodeFunc";
 
 const startTime = Date.now();
 // implementing crud for products 
@@ -11,7 +14,6 @@ export const prodPost = async ({ body, headers, shopId, userId, categoryId, supp
     try{
     // Fetch translations once instead of waiting inside the schema validation
     const prodNameErr = await getTranslation(lang, "ProdNameErr");
-    const nameErr = await getTranslation(lang, "nameErr");
     const priceErr = await getTranslation(lang, "priceErr");
     const stockErr = await getTranslation(lang, "stockErr");
     const unitErr = await getTranslation(lang, "unitErr");
@@ -19,7 +21,6 @@ export const prodPost = async ({ body, headers, shopId, userId, categoryId, supp
     // Validate product data
     const schema = z.object({
         name: z.string().min(3, prodNameErr),
-        company: z.string().min(3, nameErr),
         priceBought: z.number().min(1, priceErr),
         priceSold: z.number().min(1, priceErr),
         stock: z.number().min(0, stockErr),
@@ -36,12 +37,11 @@ export const prodPost = async ({ body, headers, shopId, userId, categoryId, supp
             }
         }
 
-        let  {name, company, priceBought, priceSold, stock, minStock, unit}: productTypes = parsed.data;
+        let  {name, priceBought, priceSold, stock, minStock, unit}: productTypes = parsed.data;
 
 
         // sanitize or remove xss scripts if available
         name = sanitizeString(name);
-        company = sanitizeString(company);
         priceBought = sanitizeNumber(priceBought);
         priceSold = sanitizeNumber(priceSold);
         stock = sanitizeNumber(stock);
@@ -49,11 +49,25 @@ export const prodPost = async ({ body, headers, shopId, userId, categoryId, supp
         unit = sanitizeString(unit);
 
         const endTime = Date.now();
-        const overallTime = `Time taken: ${endTime - startTime}ms`
+        const overallTime = `Time taken: ${endTime - startTime}ms`;
+
         // now save to database
+        await mainDb.insert(products).values({
+            name,
+            categoryId,
+            priceBought,
+            priceSold,
+            stock, 
+            supplierId,
+            shopId,
+            minStock, 
+            unit
+        });
+
         return {
             success: true,
-            data: {name, company, priceBought, priceSold, stock, minStock, shopId, userId, categoryId, supplierId, unit, overallTime}
+            data: {name, priceBought, priceSold, stock, minStock, shopId, userId, categoryId, supplierId, unit, overallTime},
+            message: 'Success'
         }   
         
     }catch(error){

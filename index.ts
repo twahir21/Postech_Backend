@@ -1,6 +1,6 @@
 import Elysia from "elysia";
 import homePlugin from "./plugin/home";
-import qrCodePlugin from "./plugin/qrcode";
+import qrCodePlugin from "./plugin/qrCode";
 import regPlugin from "./plugin/registration";
 import usersRoute from "./functions/usersFunc";
 import { setupI18n } from "./functions/translation";
@@ -42,6 +42,7 @@ new Elysia()
     .use(categoriesPlugin)
     .use(suppPlugin)
     .use(prodPlugin)
+    .use(qrCodePlugin)
 
 .listen(3000);
 const endTime = Date.now(); // Start time tracking

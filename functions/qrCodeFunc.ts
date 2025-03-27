@@ -1,54 +1,45 @@
 import QRCode from "qrcode";
-export const qrCodeGet = async () => {
-    // interfaces
-    interface jsonDataTypes {
-        id?: string;
-        name?: string;
-        company?: string;
-        price_sold?: number;
-        price_bought?: number;
-        created_at?: string;
-        supplier?: object;
-    }
+import sharp from "sharp";
+import fs from "fs/promises";
 
-    const jsonData: jsonDataTypes = {
-        id: "PROD001",
-        name: "Thermal Receipt Printer",
-        company: "Postech Innovations",
-        price_sold: 12000,
-        price_bought: 10000,
-        created_at: "2025-03-18T10:30:00Z",
-        supplier: {
-          name: "Tech Supplies Ltd",
-          contact: "+254700123456"
-        }
-    }
-    
-
+export async function generateQRCodeWithLogo(data: string, logoPath: string, outputPath: string) {
     try {
-        // convert json to string
-        const jsonString =  JSON.stringify(jsonData);
+        const qrSize = 500; // QR Code Size (Increase for better quality)
+        const logoScale = 0.25; // Logo should be 25% of the QR code
 
-        // generate qrcode as data url
-        const QrcodeDataUrl = await QRCode.toDataURL(jsonString);
+        // Generate QR Code as a Buffer
+        const qrCodeBuffer = await QRCode.toBuffer(data, {
+            errorCorrectionLevel: "H", // High to allow logo overlay
+            width: qrSize,
+        });
 
+        // Load & Resize Logo (25% of QR size)
+        const logoSize = Math.floor(qrSize * logoScale);
+        const logoBuffer = await fs.readFile(logoPath);
+        const resizedLogo = await sharp(logoBuffer)
+            .resize(logoSize, logoSize)
+            .toBuffer();
+
+        // Overlay Logo in the Center
+        await sharp(qrCodeBuffer)
+            .composite([{ input: resizedLogo, gravity: "center" }]) // Centered logo
+            .toFile(outputPath);
 
         return {
             success: true,
-            json: jsonData,
-            qrCode: QrcodeDataUrl
+            message: `QR Code generated successfully at path ${outputPath}`
         }
-
     } catch (error) {
-        if(error instanceof Error) {
+        console.error("Error generating QR Code with Logo:", error);
+        if (error instanceof Error) {
             return {
-                message: error.message,
-                success: false
+                success: false,
+                message: error.message
             }
         }else{
-            return{
-                message: "Server failed to process the request!",
-                success: false
+            return {
+                success: false,
+                message: "Error while generating QR Code."
             }
         }
     }
