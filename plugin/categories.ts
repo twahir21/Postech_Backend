@@ -49,7 +49,7 @@ const categoriesPlugin = new Elysia()
         return await categGet({ headers })
     })
 
-    .put("/categories/", async ({ jwt, cookie, headers, query, body}) => {
+    .put("/categories", async ({ jwt, cookie, headers, query, body}) => {
         const lang: any = headers["accept-language"]?.split(",") || "sw";
         const token = cookie.auth?.value;
         if (!token) {
@@ -69,7 +69,44 @@ const categoriesPlugin = new Elysia()
             categoryId
          })
     })
-    .delete("/categories/:id", categDel)
-    .get("/categories/:id", categGetOne)
+
+    .delete("/categories", async ({ jwt, cookie, headers, query}) => {
+        const lang: any = headers["accept-language"]?.split(",") || "sw";
+        const token = cookie.auth?.value;
+        if (!token) {
+            throw new Error(`${await getTranslation(lang, "noToken")}`)
+        }
+
+        const decoded = await jwt.verify(token)
+        if (!decoded) {
+            throw new Error("Unauthorized -  invalid token ");
+        }
+
+        const { categoryId } = query;
+
+        return await categDel({
+            headers,
+            categoryId
+         })
+        })
+    .get("/categories", async ({ jwt, cookie, headers, query}) => {
+        const lang: any = headers["accept-language"]?.split(",") || "sw";
+        const token = cookie.auth?.value;
+        if (!token) {
+            throw new Error(`${await getTranslation(lang, "noToken")}`)
+        }
+
+        const decoded = await jwt.verify(token)
+        if (!decoded) {
+            throw new Error("Unauthorized -  invalid token ");
+        }
+
+        const { categoryId } = query;
+
+        return await categGetOne({
+            headers,
+            categoryId
+         })
+        })
 
 export default categoriesPlugin;

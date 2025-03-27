@@ -172,16 +172,15 @@ export const categPut = async ({ body, headers, categoryId }: { body : categorie
 }
 
 // delete
-export const categDel = async ({ headers, params}: {headers: headTypes, params: {id: string}}) => {
+export const categDel = async ({ headers, categoryId}: {headers: headTypes, categoryId: string}) => {
     const lang = headers["accept-language"]?.split(",")[0] || "sw";
 
 
     try { 
-        // get id
-        const { id } = params;
+    
 
         // Validate ID length before querying (optional)
-        if (!id || id.length < 5) {
+        if (!categoryId || categoryId.length < 5) {
             return {
                 success: false,
                 message: await getTranslation(lang, "idErr")
@@ -189,7 +188,7 @@ export const categDel = async ({ headers, params}: {headers: headTypes, params: 
         }
 
         // delete from db
-        const categDel = await mainDb.delete(categories).where(eq(categories.id, id));
+        const categDel = await mainDb.delete(categories).where(eq(categories.id, categoryId));
 
         if (!categDel) {
             return {
@@ -218,20 +217,19 @@ export const categDel = async ({ headers, params}: {headers: headTypes, params: 
 } 
 
 // fetch one 
-export const categGetOne = async ({headers, params} : {headers: headTypes, params: {id : string}}) => {
+export const categGetOne = async ({headers, categoryId} : {headers: headTypes, categoryId: string}) => {
     const lang = headers["accept-language"]?.split(",")[0] || "sw";
     try {
-        const { id } = params;
 
         // Validate ID length before querying (optional)
-        if (!id || id.length < 5) {
+        if (!categoryId || categoryId.length < 5) {
             return {
                 success: false,
                 message: await getTranslation(lang, "idErr")
             };
         }
 
-        const oneCateg = await mainDb.select().from(categories).where(eq(categories.id, id));
+        const oneCateg = await mainDb.select().from(categories).where(eq(categories.id, categoryId));
 
         if(oneCateg.length === 0) {
             return {
