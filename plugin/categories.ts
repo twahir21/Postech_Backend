@@ -23,7 +23,19 @@ const categoriesPlugin = new Elysia()
             headers
         })
     })
-    .get("/categories", categGet)
+    .get("/categories", async ({ jwt, cookie, headers}) => {
+        const token = cookie.auth?.value;
+        if (!token) {
+            throw new Error("Unauthorized - no token")
+        }
+
+        const decoded = await jwt.verify(token)
+        if (!decoded) {
+            return { success: false}
+        }
+
+        return await categGet({ headers })
+    })
     .put("/categories/:id", categPut)
     .delete("/categories/:id", categDel)
     .get("/categories/:id", categGetOne)

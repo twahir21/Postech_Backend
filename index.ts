@@ -33,7 +33,6 @@ new Elysia()
     })
     .onRequest(rateLimitMiddleware)
 
-
     .use(homePlugin)
     // .use(qrCodePlugin)
     .use(regPlugin)

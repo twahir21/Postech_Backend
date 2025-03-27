@@ -97,7 +97,7 @@ const qrCodePlugin = new Elysia()
         const { userId, shopId } = await extractId({ jwt, cookie });
         const { productId } = query;
 
-        const logoPath = process.env.QR_LOGO_PATH || "./images/newLogo.png";
+        const logoPath = process.env.QR_LOGO_PATH || "undefined";
         const outputPath = `./images/qrcode_${shopId}_${productId}.png`;
         const fileName = `qrcode_${shopId}_${productId}.png`;
 
