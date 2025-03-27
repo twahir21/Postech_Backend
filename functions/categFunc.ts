@@ -102,7 +102,7 @@ export const categGet = async ({headers} : {headers: headTypes}) => {
 }
 
 // update
-export const categPut = async ({ body, headers, params }: { body : categoriesTypes, headers: headTypes, params: { id: string}}) => {
+export const categPut = async ({ body, headers, categoryId }: { body : categoriesTypes, headers: headTypes, categoryId: string}) => {
     const lang = headers["accept-language"]?.split(",")[0] || "sw";
     try {
     
@@ -127,10 +127,9 @@ export const categPut = async ({ body, headers, params }: { body : categoriesTyp
     generalName = xss(generalName)
 
     // extract id from params
-    const { id } = params;
 
     // Validate ID length before querying (optional)
-    if (!id || id.length < 5) {
+    if (!categoryId || categoryId.length < 5) {
         return {
             success: false,
             message: await getTranslation(lang, "idErr")
@@ -143,7 +142,7 @@ export const categPut = async ({ body, headers, params }: { body : categoriesTyp
         .set({
             generalName,
         })
-        .where(eq(categories.id, id));
+        .where(eq(categories.id, categoryId));
 
     if (!updateCateg) {
         return {

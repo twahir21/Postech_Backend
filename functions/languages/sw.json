@@ -34,7 +34,7 @@
     "loginErr": "Taarifa za uhakiki sio sahihi",
 
     "invalidToken": "Umezuiliwa, token sio sahihi",
-    "noToken": "Umezuiliwa, hakuna token yoyote",
+    "noToken": "Umezuiliwa, hakuna tokeni yoyote",
     "missingCredentials": "Jina la mtumiaji na nenosiri vinatakiwa",
 
     "loginSuccess": "Umefanikiwa kuingia kama"
