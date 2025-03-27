@@ -4,7 +4,6 @@ import { getTranslation } from "./translation";
 import { sanitizeNumber, sanitizeString } from "./security/xss";
 import { mainDb } from "../database/schema/connections/mainDb";
 import { products } from "../database/schema/shop";
-import { generateQRCodeWithLogo } from "./qrCodeFunc";
 
 const startTime = Date.now();
 // implementing crud for products 
@@ -37,7 +36,9 @@ export const prodPost = async ({ body, headers, shopId, userId, categoryId, supp
             }
         }
 
-        let  {name, priceBought, priceSold, stock, minStock, unit}: productTypes = parsed.data;
+
+
+        let  {name, priceBought, priceSold, stock, minStock, unit} : productTypes = parsed.data;
 
 
         // sanitize or remove xss scripts if available
@@ -50,6 +51,8 @@ export const prodPost = async ({ body, headers, shopId, userId, categoryId, supp
 
         const endTime = Date.now();
         const overallTime = `Time taken: ${endTime - startTime}ms`;
+
+
 
         // now save to database
         await mainDb.insert(products).values({

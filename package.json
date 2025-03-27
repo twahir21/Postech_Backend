@@ -16,6 +16,7 @@
     "typescript": "^5.8.2"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.775.0",
     "@elysiajs/cookie": "^0.8.0",
     "@elysiajs/cors": "^1.2.0",
     "@elysiajs/jwt": "^1.2.0",
@@ -24,6 +25,7 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/qrcode": "^1.5.5",
     "argon2": "^0.41.1",
+    "axios": "^1.8.4",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.40.1",
     "elysia": "^1.2.25",

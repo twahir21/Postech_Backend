@@ -1,39 +1,145 @@
+import Elysia from "elysia";
 import cookie from "@elysiajs/cookie";
 import jwt from "@elysiajs/jwt";
-import Elysia from "elysia";
+import axios from "axios";
+import fs from "fs/promises"; // Use async file handling
+import dotenv from "dotenv";
 import { extractId } from "../functions/security/jwtToken";
 import { generateQRCodeWithLogo } from "../functions/qrCodeFunc";
 
-const JWT_SECRET = process.env.JWT_TOKEN || "something@#morecomplicated<>es>??><Ess5%";
+dotenv.config();
 
+const { 
+    JWT_TOKEN, 
+    B2_KEY_ID, 
+    B2_APPLICATION_KEY, 
+    B2_BUCKET_ID, 
+    B2_BUCKET_NAME 
+} = process.env;
+
+if (!JWT_TOKEN || !B2_KEY_ID || !B2_APPLICATION_KEY || !B2_BUCKET_ID || !B2_BUCKET_NAME) {
+    throw new Error("Missing required environment variables!");
+}
+
+// 🔥 Cache B2 Authentication & Upload URL
+let b2AuthCache: { apiUrl: string; authToken: string; uploadUrl: string; uploadAuthToken: string } | null = null;
+let lastAuthTime = 0;
+
+// 🛠️ Authenticate with B2 (Caching Enabled)
+async function getB2Auth() {
+    const now = Date.now();
+    if (b2AuthCache && now - lastAuthTime < 23 * 60 * 60 * 1000) { // Cache valid for 23 hours
+        return b2AuthCache;
+    }
+
+    console.log("🔐 Authenticating with B2...");
+    const authString = Buffer.from(`${B2_KEY_ID}:${B2_APPLICATION_KEY}`).toString("base64");
+    const response = await axios.get("https://api.backblazeb2.com/b2api/v2/b2_authorize_account", {
+        headers: { Authorization: `Basic ${authString}` },
+    });
+
+    // Get upload URL
+    const uploadResponse = await axios.post(
+        `${response.data.apiUrl}/b2api/v2/b2_get_upload_url`,
+        { bucketId: B2_BUCKET_ID },
+        { headers: { Authorization: response.data.authorizationToken } }
+    );
+
+    b2AuthCache = {
+        apiUrl: response.data.apiUrl,
+        authToken: response.data.authorizationToken,
+        uploadUrl: uploadResponse.data.uploadUrl,
+        uploadAuthToken: uploadResponse.data.authorizationToken,
+    };
+
+    lastAuthTime = now;
+    return b2AuthCache;
+}
+
+// 🔄 Upload QR code to Backblaze B2
+async function uploadToB2(filePath: string, fileName: string) {
+    const { uploadUrl, uploadAuthToken } = await getB2Auth();
+    const fileBuffer = await fs.readFile(filePath);
+
+    await axios.post(uploadUrl, fileBuffer, {
+        headers: {
+            Authorization: uploadAuthToken,
+            "X-Bz-File-Name": fileName,
+            "Content-Type": "image/png",
+            "X-Bz-Content-Sha1": "do_not_verify",
+        },
+    });
+
+    return fileName;
+}
+
+// 🔗 Generate a private download link
+async function getPrivateDownloadUrl(fileName: string) {
+    const { apiUrl, authToken } = await getB2Auth();
+
+    const response = await axios.post(
+        `${apiUrl}/b2api/v2/b2_get_download_authorization`,
+        {
+            bucketId: B2_BUCKET_ID,
+            fileNamePrefix: fileName,
+            validDurationInSeconds: 300,
+        },
+        { headers: { Authorization: authToken } }
+    );
+
+    return `${apiUrl}/file/${B2_BUCKET_NAME}/${fileName}?Authorization=${response.data.authorizationToken}`;
+}
+
+// 🚀 QR Code API Route
 const qrCodePlugin = new Elysia()
-    .use(jwt({
-        name: 'jwt',
-        secret: JWT_SECRET
-
-    }))
-    .get("/generate-qrcode", async ({ query, jwt, cookie}) => {
-        const { userId, shopId} = await extractId({ jwt, cookie});
+    .use(jwt({ name: "jwt", secret: JWT_TOKEN }))
+    .get("/generate-qrcode", async ({ query, jwt, cookie }) => {
+        const { userId, shopId } = await extractId({ jwt, cookie });
         const { productId } = query;
 
-        const logoPath = './images/logo.png';
-        const outputPath = './images/output.png';
+        const logoPath = process.env.QR_LOGO_PATH || "./images/newLogo.png";
+        const outputPath = `./images/qrcode_${shopId}_${productId}.png`;
+        const fileName = `qrcode_${shopId}_${productId}.png`;
 
         const prodData = {
             product: {
-                action: "sale",  // or "stock_add"
-                shopId: shopId,
-                productId: productId,
-                userId: userId,
-                quantity: 5
-              }
-              
-        }
+                action: "sale", 
+                shopId,
+                productId,
+                userId,
+                quantity: 5,
+            },
+        };
 
         const data = JSON.stringify(prodData);
 
-        return await generateQRCodeWithLogo(data, logoPath, outputPath)
-        
-    })
+        console.time("QR Code Generation");
 
-export default qrCodePlugin
+        // 🏎️ Generate QR Code in the background
+        const qrPromise = generateQRCodeWithLogo(data, logoPath, outputPath);
+
+        // 🌍 Get B2 Authentication in parallel
+        const authPromise = getB2Auth();
+
+        // Wait for both QR code generation and B2 auth to complete
+        await Promise.all([qrPromise, authPromise]);
+
+        console.timeEnd("QR Code Generation");
+
+        console.time("B2 Upload");
+        // 🏎️ Upload QR code asynchronously
+        await uploadToB2(outputPath, fileName);
+        console.timeEnd("B2 Upload");
+
+        // 🗑️ Delete the local QR file asynchronously
+        fs.unlink(outputPath).catch(err => console.error("File delete error:", err));
+
+        console.time("Get Signed URL");
+        // 🔗 Generate a signed URL for download
+        const secureUrl = await getPrivateDownloadUrl(fileName);
+        console.timeEnd("Get Signed URL");
+
+        return { success: true, url: secureUrl };
+    });
+
+export default qrCodePlugin;

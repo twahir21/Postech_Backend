@@ -8,7 +8,6 @@ export interface registerRequest {
 
 export interface productTypes {
     name?: string;
-    company?: string;
     priceBought?: number;
     priceSold?: number;
     stock?: number;
