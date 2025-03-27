@@ -94,52 +94,64 @@ async function getPrivateDownloadUrl(fileName: string) {
 const qrCodePlugin = new Elysia()
     .use(jwt({ name: "jwt", secret: JWT_TOKEN }))
     .get("/generate-qrcode", async ({ query, jwt, cookie }) => {
-        const { userId, shopId } = await extractId({ jwt, cookie });
-        const { productId } = query;
+        try {
+            const { userId, shopId } = await extractId({ jwt, cookie });
+            const { productId } = query;
 
-        const logoPath = process.env.QR_LOGO_PATH || "undefined";
-        const outputPath = `./images/qrcode_${shopId}_${productId}.png`;
-        const fileName = `qrcode_${shopId}_${productId}.png`;
+            const logoPath = process.env.QR_LOGO_PATH || "./default_logo.png"; // Provide default if not set
+            const outputPath = `./images/qrcode_${shopId}_${productId}.png`;
+            const fileName = `qrcode_${shopId}_${productId}.png`;
 
-        const prodData = {
-            product: {
-                action: "sale", 
-                shopId,
-                productId,
-                userId,
-                quantity: 5,
-            },
-        };
+            const prodData = {
+                product: {
+                    action: "sale", 
+                    shopId,
+                    productId,
+                    userId,
+                    quantity: 5,
+                },
+            };
 
-        const data = JSON.stringify(prodData);
+            const url = new URL('http://localhost:3000/scan-qrcode');
 
-        console.time("QR Code Generation");
+            // Iterate over the product object keys and append them as query params
+            Object.keys(prodData.product).forEach((key) => {
+                const value = prodData.product[key as keyof typeof prodData.product];
+                url.searchParams.append(key, value.toString());
+            });
+            
+            const data = url.toString();
+            console.time("QR Code Generation");
 
-        // 🏎️ Generate QR Code in the background
-        const qrPromise = generateQRCodeWithLogo(data, logoPath, outputPath);
+            // 🏎️ Generate QR Code in the background
+            const qrPromise = generateQRCodeWithLogo(data, logoPath, outputPath);
 
-        // 🌍 Get B2 Authentication in parallel
-        const authPromise = getB2Auth();
+            // 🌍 Get B2 Authentication in parallel
+            const authPromise = getB2Auth();
 
-        // Wait for both QR code generation and B2 auth to complete
-        await Promise.all([qrPromise, authPromise]);
+            // Wait for both QR code generation and B2 auth to complete
+            await Promise.all([qrPromise, authPromise]);
 
-        console.timeEnd("QR Code Generation");
+            console.timeEnd("QR Code Generation");
 
-        console.time("B2 Upload");
-        // 🏎️ Upload QR code asynchronously
-        await uploadToB2(outputPath, fileName);
-        console.timeEnd("B2 Upload");
+            console.time("B2 Upload");
+            // 🏎️ Upload QR code asynchronously
+            await uploadToB2(outputPath, fileName);
+            console.timeEnd("B2 Upload");
 
-        // 🗑️ Delete the local QR file asynchronously
-        fs.unlink(outputPath).catch(err => console.error("File delete error:", err));
+            // 🗑️ Delete the local QR file asynchronously
+            await fs.unlink(outputPath).catch(err => console.error("File delete error:", err));
 
-        console.time("Get Signed URL");
-        // 🔗 Generate a signed URL for download
-        const secureUrl = await getPrivateDownloadUrl(fileName);
-        console.timeEnd("Get Signed URL");
+            console.time("Get Signed URL");
+            // 🔗 Generate a signed URL for download
+            const secureUrl = await getPrivateDownloadUrl(fileName);
+            console.timeEnd("Get Signed URL");
 
-        return { success: true, url: secureUrl };
+            return { success: true, url: secureUrl };
+        } catch (error) {
+            console.error("Error generating QR code:", error);
+            return { success: false, message: "An error occurred during QR code generation." };
+        }
     });
 
 export default qrCodePlugin;
