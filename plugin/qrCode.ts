@@ -125,7 +125,7 @@ const qrCodePlugin = new Elysia()
                     quantity: 1,
                     saleType: "cash",
                     discount: 0,
-                    customerId: "",
+                    customerId: null,
                     description: "restocking",
                     amount
                 },
@@ -136,8 +136,10 @@ const qrCodePlugin = new Elysia()
             // Iterate over the product object keys and append them as query params
             Object.keys(prodData.product).forEach((key) => {
                 const value = prodData.product[key as keyof typeof prodData.product];
-                url.searchParams.append(key, value.toString());
-            });
+                if (value !== undefined && value !== null) {  // ✅ Ensure value exists
+                    url.searchParams.append(key, value.toString());
+                }
+            });            
             
             const data = url.toString();
             console.time("QR Code Generation");

@@ -1,0 +1,1 @@
+ALTER TABLE "sales" ADD COLUMN "price_sold" numeric NOT NULL;
