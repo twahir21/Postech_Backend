@@ -1,0 +1,27 @@
+{
+    "action": "sale_or_purchase",  // Action type: "sale" for sale, "purchase" for restocking
+    "shop_id": "shop-uuid",  // Shop ID
+    "product_id": "product-uuid",  // Product ID
+    "quantity": 1,  // Default is 1; user can adjust for sales or purchase
+    "price": 100.0,  // For purchase actions, this is the price at which the product was bought
+    "is_discounted": false,  // Whether this sale has a discount (for sale actions)
+    "discount_amount": 0.0,  // If is_discounted is true, specify the discount amount
+    "user_action": "confirm",  // User action: "confirm" to confirm action, or "cancel" to abort
+    "timestamp": "2025-03-27T14:00:00Z"  // Timestamp of the transaction
+  }
+  
+  supplier to track most sold product and highest profit product
+  products update stock and status
+  supplierPriceHistory to check price of supplier
+  sales to add quantity of product with customer id if available
+
+  for debt, after scanning qrcodes you need to enter some infos manually 
+  and this can consume time so cash customers are served first.
+
+  returns gives manual insertion of data.
+
+  cash sales goes to sales table (product_id, quantity, shopId, saleType, customerId)
+  purchases goes to expenses
+  debt sales goes to debt and logic beside insertion
+
+  manual tracking of asked products

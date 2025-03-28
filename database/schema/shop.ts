@@ -117,7 +117,6 @@ import {
     id: uuid("id").defaultRandom().primaryKey(),
     productId: uuid("product_id").notNull().references(() => products.id, {onDelete: "set null"}),
     quantity: integer("quantity").notNull(),
-    priceSold: numeric("price_sold").notNull(),
     // total_price and net_price can be computed on the fly in queries
     discount: numeric("discount").notNull().default("0"),
     shopId: uuid("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),

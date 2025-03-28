@@ -6,6 +6,9 @@ import fs from "fs/promises"; // Use async file handling
 import dotenv from "dotenv";
 import { extractId } from "../functions/security/jwtToken";
 import { generateQRCodeWithLogo } from "../functions/qrCodeFunc";
+import { mainDb } from "../database/schema/connections/mainDb";
+import { products, supplierPriceHistory } from "../database/schema/shop";
+import { eq } from "drizzle-orm";
 
 dotenv.config();
 
@@ -98,17 +101,33 @@ const qrCodePlugin = new Elysia()
             const { userId, shopId } = await extractId({ jwt, cookie });
             const { productId } = query;
 
-            const logoPath = process.env.QR_LOGO_PATH || "./default_logo.png"; // Provide default if not set
+            const result = await mainDb.select({priceSold: products.priceSold})
+                                .from(products).where(eq(products.id, productId));
+            
+            const priceSold = result[0]?.priceSold;
+
+            const res = await mainDb.select({ price: supplierPriceHistory.price })
+                                .from(supplierPriceHistory).where(eq(supplierPriceHistory.productId, productId));
+            
+            const amount = res[0]?.price;
+
+            const logoPath = process.env.QR_LOGO_PATH || "./default_logo.png";
+        
             const outputPath = `./images/qrcode_${shopId}_${productId}.png`;
             const fileName = `qrcode_${shopId}_${productId}.png`;
 
             const prodData = {
                 product: {
-                    action: "sale", 
                     shopId,
                     productId,
+                    priceSold,
                     userId,
-                    quantity: 5,
+                    quantity: 1,
+                    saleType: "cash",
+                    discount: 0,
+                    customerId: "",
+                    description: "restocking",
+                    amount
                 },
             };
 

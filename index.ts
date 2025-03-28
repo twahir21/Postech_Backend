@@ -2,7 +2,6 @@ import Elysia from "elysia";
 import homePlugin from "./plugin/home";
 import qrCodePlugin from "./plugin/qrCode";
 import regPlugin from "./plugin/registration";
-import usersRoute from "./functions/usersFunc";
 import { setupI18n } from "./functions/translation";
 import { cors } from "@elysiajs/cors";
 
@@ -13,6 +12,7 @@ import suppPlugin from "./plugin/supplier";
 import { rateLimitMiddleware } from "./functions/security/rateLimiting";
 import { loginPlugin } from "./plugin/login";
 import { prodPlugin } from "./plugin/products";
+import automateTasks from "./plugin/autoSales";
 
 const startTime = Date.now(); // Start time tracking
 
@@ -42,6 +42,7 @@ new Elysia()
     .use(suppPlugin)
     .use(prodPlugin)
     .use(qrCodePlugin)
+    .use(automateTasks)
 
 .listen(3000);
 const endTime = Date.now(); // Start time tracking
