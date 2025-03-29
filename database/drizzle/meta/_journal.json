@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1742707548809,
-      "tag": "0000_round_warlock",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1742791562684,
-      "tag": "0001_third_omega_flight",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1743146706870,
-      "tag": "0002_messy_iron_fist",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1743153773113,
-      "tag": "0003_steady_absorbing_man",
+      "when": 1743182700737,
+      "tag": "0000_lively_ultragirl",
       "breakpoints": true
     }
   ]

@@ -60,29 +60,28 @@ import {
   }));
 
   // -----------------
-  // Suppliers Table
+  // Suppliers Table (Updated)
   // -----------------
   export const suppliers = pgTable("suppliers", {
     id: uuid("id").defaultRandom().primaryKey(),
     company: text("company").notNull(),
     contact: text("contact").notNull(),
-    shopId: uuid("shop_id").notNull().references(() => shops.id),
+    shopId: uuid("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
     mostSoldProduct: uuid("most_sold_product"), // FK to products.id (optional)
     highestProfitProduct: uuid("highest_profit_product"), // FK to products.id (optional)
   });
 
-    // -----------------
-  // Products Table
+  // -----------------
+  // Products Table (Updated)
   // -----------------
   export const products = pgTable("products", {
     id: uuid("id").defaultRandom().primaryKey(),
     name: text("name").notNull().unique(),
     categoryId: uuid("category_id").references(() => categories.id, { onDelete: "set null" }),
-    priceBought: numeric("price_bought").notNull(),
     priceSold: numeric("price_sold").notNull(),
     stock: integer("stock").notNull(),
     shopId: uuid("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
-    supplierId: uuid("supplier_id").notNull().references(() => suppliers.id, {onDelete: "cascade"}), // Supplier (Company)
+    supplierId: uuid("supplier_id").notNull().references(() => suppliers.id, { onDelete: "cascade" }),
     minStock: integer("min_stock").notNull(),
     status: text("status").notNull().default("available"),
     unit: text("unit"),
@@ -90,8 +89,19 @@ import {
     updatedAt: timestamp("updated_at").defaultNow(),
   });
 
-
-  
+  // -----------------
+  // Purchases Table (New)
+  // -----------------
+  export const purchases = pgTable("purchases", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    productId: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+    supplierId: uuid("supplier_id").notNull().references(() => suppliers.id, { onDelete: "cascade" }),
+    shopId: uuid("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
+    quantity: integer("quantity").notNull(), // Amount added to stock
+    priceBought: numeric("price_bought").notNull(), // Cost price per unit
+    totalCost: numeric("total_cost").notNull(), // quantity * priceBought
+    purchaseDate: timestamp("purchase_date").defaultNow(),
+  });
 
   
   // ------------------------------
@@ -119,6 +129,7 @@ import {
     quantity: integer("quantity").notNull(),
     priceSold: numeric("price_sold").notNull(), // this is mandatory for calculating total price
     // total_price and net_price can be computed on the fly in queries
+    totalSales: numeric("total_sales").notNull(),
     discount: numeric("discount").notNull().default("0"),
     shopId: uuid("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
     saleType: text("sale_type").notNull().default("cash"),

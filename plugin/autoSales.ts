@@ -1,7 +1,7 @@
 import jwt from "@elysiajs/jwt";
 import Elysia from "elysia";
 import { mainDb } from "../database/schema/connections/mainDb";
-import { products, sales } from "../database/schema/shop";
+import { debts, debtPayments, products, purchases, sales } from "../database/schema/shop";
 import { eq, sql } from "drizzle-orm";
 
 const JWT_SECRET = process.env.JWT_TOKEN || "something@#morecomplicated<>es>??><Ess5%";
@@ -11,54 +11,106 @@ const automateTasks = new Elysia()
         name: 'jwt',
         secret: JWT_SECRET
     }))
-    .get("/scan-qrcode", async({ jwt, cookie, query}) => {
+    .get("/scan-qrcode", async ({ jwt, cookie, query }) => {
         const token = cookie.auth?.value;
         if (!token) {
             throw new Error("Unauthorized - no token");
         }
 
         const decoded = await jwt.verify(token);
-
-        if(!decoded) {
-            throw new Error("Unauthorized - Invalid Token!")
+        if (!decoded) {
+            throw new Error("Unauthorized - Invalid Token!");
         }
 
-        // defining queries from the link  
-        const { priceSold, shopId, productId, userId, quantity, saleType, discount, customerId, description, amount} = query;
+        // Extract & parse values
+        const {
+            priceSold, shopId, productId, userId, quantity, saleType,
+            discount, customerId, description, amount, supplierId, priceBought
+        } = query;
 
-        // implement switch
-        const normalizedSaleType = saleType.trim().toLowerCase(); // Ensure consistency by removing spaces and convert to lowercase
+        // Convert to numbers to avoid SQL errors
+        const parsedQuantity = Number(quantity);
+        const parsedPriceSold = Number(priceSold);
+        const parsedPriceBought = Number(priceBought || 0);
+        const parsedDiscount = Number(discount || 0);
+
+        if (isNaN(parsedQuantity) || parsedQuantity <= 0) throw new Error("Invalid quantity");
+        if (isNaN(parsedPriceSold) || parsedPriceSold <= 0) throw new Error("Invalid priceSold");
+
+        const normalizedSaleType = saleType.trim().toLowerCase(); // Normalize case
 
         switch (normalizedSaleType) {
             case "cash":
-                // ✅ Logic for cash sales (update sales table & stock)
+                // ✅ Insert into sales table
                 await mainDb.insert(sales).values({
                     productId,
-                    quantity,
-                    discount,
+                    quantity: parsedQuantity,
+                    discount: parsedDiscount,
                     shopId,
-                    priceSold: parseFloat(priceSold.toString()),
+                    priceSold: parsedPriceSold,
+                    totalSales: sql`${parsedQuantity} * ${parsedPriceSold}`, // ✅ Fixed
                     saleType,
                     customerId
                 });
 
-                // now update stock
+                // ✅ Update product stock (ensure it doesn't go negative)
                 await mainDb.update(products)
-                .set({
-                  stock: sql`GREATEST(${products.stock} - ${quantity}, 0)`// ✅ Perform subtraction using SQL
-                })
-                .where(eq(products.id, productId));
+                    .set({
+                        stock: sql`GREATEST(${products.stock} - ${parsedQuantity}, 0)`
+                    })
+                    .where(eq(products.id, productId));
 
                 break;
-        
+
             case "debt":
-                // ✅ Logic for debt sales (update debts table, sales, and stock)
+                if (!customerId) throw new Error("Customer ID is required for debt sales.");
+
+                // ✅ Insert into debts table
+                const [{ id: debtId }] = await mainDb.insert(debts)
+                    .values({
+                        customerId,
+                        totalAmount: sql`${parsedQuantity} * ${parsedPriceSold}`,
+                        remainingAmount: sql`${parsedQuantity} * ${parsedPriceSold}`,
+                        shopId
+                    })
+                    .returning({ id: debts.id });
+
+                // ✅ Insert into sales table (to track the sale)
+                await mainDb.insert(sales).values({
+                    productId,
+                    quantity: parsedQuantity,
+                    discount: parsedDiscount,
+                    shopId,
+                    priceSold: parsedPriceSold,
+                    totalSales: sql`${parsedQuantity} * ${parsedPriceSold}`,
+                    saleType: "debt",
+                    customerId
+                });
+
                 break;
-        
-            case "restocking":
-                // ✅ Logic for restocking (update stock and expenses)
+
+            case "purchases":
+                if (!supplierId || !parsedPriceBought) throw new Error("Missing supplierId or priceBought for purchase");
+
+                // ✅ Insert into purchases table
+                await mainDb.insert(purchases).values({
+                    productId,
+                    supplierId,
+                    shopId,
+                    quantity: parsedQuantity,
+                    priceBought: parsedPriceBought,
+                    totalCost: sql`${parsedPriceBought} * ${parsedQuantity}`,
+                });
+
+                // ✅ Update product stock (restock)
+                await mainDb.update(products)
+                    .set({
+                        stock: sql`${products.stock} + ${parsedQuantity}`
+                    })
+                    .where(eq(products.id, productId));
+
                 break;
-        
+
             default:
                 throw new Error(`Invalid saleType provided: "${saleType}"`);
         }
@@ -66,9 +118,7 @@ const automateTasks = new Elysia()
         return {
             success: true,
             message: "Success"
-        }
-        
-
+        };
     });
 
-export default automateTasks
+export default automateTasks;

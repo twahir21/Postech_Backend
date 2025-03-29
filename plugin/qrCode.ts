@@ -7,7 +7,7 @@ import dotenv from "dotenv";
 import { extractId } from "../functions/security/jwtToken";
 import { generateQRCodeWithLogo } from "../functions/qrCodeFunc";
 import { mainDb } from "../database/schema/connections/mainDb";
-import { products, supplierPriceHistory } from "../database/schema/shop";
+import { products, purchases, supplierPriceHistory } from "../database/schema/shop";
 import { eq } from "drizzle-orm";
 
 dotenv.config();
@@ -111,6 +111,11 @@ const qrCodePlugin = new Elysia()
             
             const amount = res[0]?.price;
 
+            const priceBoughtDb = await mainDb.select({ priceBought: purchases.priceBought })
+                                    .from(purchases).where(eq(purchases.productId, productId));
+
+            const priceBought = priceBoughtDb[0]?.priceBought;
+
             const logoPath = process.env.QR_LOGO_PATH || "./default_logo.png";
         
             const outputPath = `./images/qrcode_${shopId}_${productId}.png`;
@@ -126,8 +131,9 @@ const qrCodePlugin = new Elysia()
                     saleType: "cash",
                     discount: 0,
                     customerId: null,
-                    description: "restocking",
-                    amount
+                    description: "purchases",
+                    amount,
+                    priceBought
                 },
             };
 
