@@ -13,6 +13,7 @@ import { rateLimitMiddleware } from "./functions/security/rateLimiting";
 import { loginPlugin } from "./plugin/login";
 import { prodPlugin } from "./plugin/products";
 import automateTasks from "./plugin/autoSales";
+import { mailPlugin } from "./plugin/email/smtp";
 
 const startTime = Date.now(); // Start time tracking
 
@@ -43,6 +44,7 @@ new Elysia()
     .use(prodPlugin)
     .use(qrCodePlugin)
     .use(automateTasks)
+    .use(mailPlugin)
 
 .listen(3000);
 const endTime = Date.now(); // Start time tracking
