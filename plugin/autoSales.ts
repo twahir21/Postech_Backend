@@ -12,7 +12,7 @@ const automateTasks = new Elysia()
         secret: JWT_SECRET
     }))
     .get("/scan-qrcode", async ({ jwt, cookie, query }) => {
-        const token = cookie.auth?.value;
+        const token = cookie.auth_token?.value;
         if (!token) {
             throw new Error("Unauthorized - no token");
         }

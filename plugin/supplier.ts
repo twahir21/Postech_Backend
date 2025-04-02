@@ -16,7 +16,7 @@ const suppPlugin = new Elysia()
     .get("/suppliers", async ({ jwt, cookie, headers}) => {
             const { userId, shopId } = await extractId({ jwt, cookie });
             const lang: any = headers["accept-language"]?.split(",") || "sw";
-            const token = cookie.auth?.value;
+            const token = cookie.auth_token?.value;
             if (!token) {
                 throw new Error(`${await getTranslation(lang, "noToken")}`)
             }
@@ -31,7 +31,7 @@ const suppPlugin = new Elysia()
     .post("/suppliers", async ({ jwt, cookie, headers, body}) => {
         const { userId, shopId } = await extractId({ jwt, cookie });
         const lang: any = headers["accept-language"]?.split(",") || "sw";
-        const token = cookie.auth?.value;
+        const token = cookie.auth_token?.value;
         if (!token) {
             throw new Error(`${await getTranslation(lang, "noToken")}`)
         }
@@ -47,7 +47,7 @@ const suppPlugin = new Elysia()
     .put("/suppliers", async ({ jwt, cookie, headers, query, body}) => {
         const { userId, shopId } = await extractId({ jwt, cookie });
         const lang: any = headers["accept-language"]?.split(",") || "sw";
-        const token = cookie.auth?.value;
+        const token = cookie.auth_token?.value;
         if (!token) {
             throw new Error(`${await getTranslation(lang, "noToken")}`)
         }
@@ -66,7 +66,7 @@ const suppPlugin = new Elysia()
     .delete("/suppliers", async ({ jwt, cookie, headers, query}) => {
         const { userId, shopId } = await extractId({ jwt, cookie });
         const lang: any = headers["accept-language"]?.split(",") || "sw";
-        const token = cookie.auth?.value;
+        const token = cookie.auth_token?.value;
         if (!token) {
             throw new Error(`${await getTranslation(lang, "noToken")}`)
         }
@@ -85,7 +85,7 @@ const suppPlugin = new Elysia()
     .get("/suppliers", async ({ jwt, cookie, headers, query}) => {
         const { userId, shopId } = await extractId({ jwt, cookie });
         const lang: any = headers["accept-language"]?.split(",") || "sw";
-        const token = cookie.auth?.value;
+        const token = cookie.auth_token?.value;
         if (!token) {
             throw new Error(`${await getTranslation(lang, "noToken")}`)
         }

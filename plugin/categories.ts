@@ -1,5 +1,5 @@
 import Elysia from "elysia";
-import { categDel, categGet, categGetOne, categPost, categPut } from "../functions/categFunc";
+import { categDel, categGet, categPost, categPut } from "../functions/categFunc";
 import jwt from "@elysiajs/jwt";
 import { extractId } from "../functions/security/jwtToken";
 import type { categoriesTypes } from "../types/types";
@@ -17,8 +17,9 @@ const categoriesPlugin = new Elysia()
     .post("/categories", async ({ jwt, cookie, body, headers}) => {
         const { userId, shopId } = await extractId({ jwt, cookie});
         const lang: any = headers["accept-language"]?.split(",") || "sw";
-        const token = cookie.auth?.value;
+        const token = cookie.auth_token?.value;
         if (!token) {
+            console.log("Err: ", token)
             throw new Error(`${await getTranslation(lang, "noToken")}`)
         }
 
@@ -36,7 +37,8 @@ const categoriesPlugin = new Elysia()
 
     .get("/categories", async ({ jwt, cookie, headers}) => {
         const lang: any = headers["accept-language"]?.split(",") || "sw";
-        const token = cookie.auth?.value;
+        const token = cookie.auth_token?.value;
+
         if (!token) {
             throw new Error(`${await getTranslation(lang, "noToken")}`)
         }
@@ -51,7 +53,7 @@ const categoriesPlugin = new Elysia()
 
     .put("/categories", async ({ jwt, cookie, headers, query, body}) => {
         const lang: any = headers["accept-language"]?.split(",") || "sw";
-        const token = cookie.auth?.value;
+        const token = cookie.auth_token?.value;
         if (!token) {
             throw new Error(`${await getTranslation(lang, "noToken")}`)
         }
@@ -72,7 +74,7 @@ const categoriesPlugin = new Elysia()
 
     .delete("/categories", async ({ jwt, cookie, headers, query}) => {
         const lang: any = headers["accept-language"]?.split(",") || "sw";
-        const token = cookie.auth?.value;
+        const token = cookie.auth_token?.value;
         if (!token) {
             throw new Error(`${await getTranslation(lang, "noToken")}`)
         }
@@ -88,25 +90,6 @@ const categoriesPlugin = new Elysia()
             headers,
             categoryId
          })
-        })
-    .get("/categories", async ({ jwt, cookie, headers, query}) => {
-        const lang: any = headers["accept-language"]?.split(",") || "sw";
-        const token = cookie.auth?.value;
-        if (!token) {
-            throw new Error(`${await getTranslation(lang, "noToken")}`)
-        }
-
-        const decoded = await jwt.verify(token)
-        if (!decoded) {
-            throw new Error("Unauthorized -  invalid token ");
-        }
-
-        const { categoryId } = query;
-
-        return await categGetOne({
-            headers,
-            categoryId
-         })
-        })
+        });
 
 export default categoriesPlugin;

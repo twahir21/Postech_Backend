@@ -31,9 +31,10 @@ export const regPost = async ({ body, headers }: { body: registerRequest; header
         let { name, username, email, password }: registerRequest = parsed.data;
 
         // 🛡️ **Sanitize Inputs**
-        name = sanitizeString(name);
-        username = sanitizeString(username);
-        email = sanitizeString(email);
+        name = sanitizeString(name.trim().toLowerCase());
+        username = sanitizeString(username.trim().toLowerCase());
+        email = sanitizeString(email.trim());
+        password = sanitizeString(password.trim())
 
         // Check if the email is already registered
         const existingUser = await mainDb.select().from(users).where(eq(users.email, email)).limit(1);

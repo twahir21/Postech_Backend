@@ -14,23 +14,43 @@ import { loginPlugin } from "./plugin/login";
 import { prodPlugin } from "./plugin/products";
 import automateTasks from "./plugin/autoSales";
 import { mailPlugin } from "./plugin/email/smtp";
+import cookie from "@elysiajs/cookie";
+import jwt from "@elysiajs/jwt";
 
 const startTime = Date.now(); // Start time tracking
+
 
 // initialize translation before start the server
 await setupI18n();
 new Elysia()
-    // security
-    .use(cors({
-        // origin: "https://yourfrontend.com", // Restrict CORS to your frontend
-        credentials: true, // Allow cookies
-    }))
-    // set CSP for security headers for prevent XSS
+    // use cookie for JWT
+    .use(cookie())
+
+    // Proper CORS handling
+    .use(
+        cors({
+            origin: "http://localhost:5173", // Allow only frontend origin
+            allowedHeaders: ["Content-Type", "Authorization", "Accept-Language"],
+            credentials: true, // Allow cookies
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow specific methods
+            maxAge: 3600, // Cache preflight response for 1 hour
+        })
+    )
+
+    // Security headers
     .onRequest(({ set }) => {
         set.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'";
-        // set.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"; // Force HTTPS
-        set.headers["X-Frame-Options"] = "DENY"; // Prevent clickjacking
-        set.headers["X-Content-Type-Options"] = "nosniff"; // Prevent MIME type sniffing
+        set.headers["X-Frame-Options"] = "DENY";
+        set.headers["X-Content-Type-Options"] = "nosniff";
+    })
+
+    // Handle CORS for preflight requests (OPTIONS method)
+    .options("/*", ({ set }) => {
+        set.headers["Access-Control-Allow-Origin"] = "http://localhost:5173";
+        set.headers["Access-Control-Allow-Credentials"] = "true";
+        set.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS";
+        set.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization";
+        return new Response(null, { status: 204 }); // 204 No Content for preflight
     })
     .onRequest(rateLimitMiddleware)
 

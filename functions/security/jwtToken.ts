@@ -5,7 +5,7 @@ interface ExtractedId {
 }
 
 export const extractId = async ({ jwt, cookie }: { jwt: any; cookie: any }): Promise<ExtractedId> => {
-    const token = cookie.auth?.value;
+    const token = cookie.auth_token?.value;
     if (!token) {
         throw new Error("Unauthorized - No token"); // Ensure error is thrown for missing token
     }

@@ -1,5 +1,4 @@
 import Elysia from "elysia";
-import cookie from "@elysiajs/cookie";
 import jwt from "@elysiajs/jwt";
 import axios from "axios";
 import fs from "fs/promises"; // Use async file handling

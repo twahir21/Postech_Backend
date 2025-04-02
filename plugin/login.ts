@@ -23,9 +23,11 @@ export const loginPlugin = new Elysia()
 
         try {
             let { username, password }: any = body;
-            // sanitize
-            username = sanitizeString(username);
-            password = sanitizeString(password);
+            // 🛡️ **Sanitize Inputs**
+            username = sanitizeString(username.trim().toLowerCase());
+            password = sanitizeString(password.trim());
+
+            
 
             // Check for missing credentials
             if (!username || !password) {
@@ -74,11 +76,11 @@ export const loginPlugin = new Elysia()
             }
 
             // Set JWT in a cookie with options
-            cookie.auth.set({
+            cookie.auth_token.set({
                 value: token,
                 httpOnly: true, // prevents JavaScript from stealing the cookie (if stealed user get authenticated)
                 secure: process.env.NODE_ENV === 'production', // Only send over HTTPS in production
-                sameSite: 'strict',
+                sameSite: 'strict', // CSRF protection
                 maxAge: 7 * 86400,  // 7 days
                 path: '/',
             });
@@ -101,30 +103,4 @@ export const loginPlugin = new Elysia()
                 };
             }
         }
-    })
-    .get('/protected', async ({ jwt, cookie, error }) => {
-        const token = cookie.auth?.value;
-    
-        console.log('Token:', token);  // Log the token value
-    
-        if (!token) {
-            return error(401, 'Unauthorized - No token');
-        }
-    
-        try {
-            console.log(token);
-            const decoded = await jwt.verify(token);  // Verify token
-    
-            if (!decoded) {
-                return {
-                    success: false
-                }
-            }
-            const { userId, shopId } = decoded;
-            return `Hello, User ID: ${userId}, Shop ID: ${shopId}`;
-        } catch (err) {
-            console.error('Token verification failed:', err);  // Log any errors during verification
-            return error(401, 'Unauthorized - Invalid token');
-        }
     });
-    

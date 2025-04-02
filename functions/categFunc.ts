@@ -216,47 +216,4 @@ export const categDel = async ({ headers, categoryId}: {headers: headTypes, cate
     }
 } 
 
-// fetch one 
-export const categGetOne = async ({headers, categoryId} : {headers: headTypes, categoryId: string}) => {
-    const lang = headers["accept-language"]?.split(",")[0] || "sw";
-    try {
-
-        // Validate ID length before querying (optional)
-        if (!categoryId || categoryId.length < 5) {
-            return {
-                success: false,
-                message: await getTranslation(lang, "idErr")
-            };
-        }
-
-        const oneCateg = await mainDb.select().from(categories).where(eq(categories.id, categoryId));
-
-        if(oneCateg.length === 0) {
-            return {
-                success: false,
-                message: sanitizeString(await getTranslation(lang, "notFound"))
-            }
-        }
-
-        return {
-            success: true,
-            message: await getTranslation(lang, "success"),
-            data: oneCateg[0] || null // ensure doesnot return array
-        }
-    } catch (error) {
-        if(error instanceof Error) {
-            return {
-                success: false,
-                message: error.message
-            }
-        }else{
-            return {
-                success: false,
-                message: sanitizeString(await getTranslation(lang, "serverErr"))
-            }
-        }
-    }
-}
-
-
 // update and delete data has no length use !data to ensure is valid

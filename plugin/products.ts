@@ -16,7 +16,7 @@ export const prodPlugin = new Elysia()
     .get("/products", async ({ jwt, cookie, headers}) => {
         const { userId, shopId } = await extractId({ jwt, cookie });
         const lang: any = headers["accept-language"]?.split(",") || "sw";
-        const token = cookie.auth?.value;
+        const token = cookie.auth_token?.value;
         if (!token) {
             throw new Error(`${await getTranslation(lang, "noToken")}`)
         }
@@ -30,7 +30,7 @@ export const prodPlugin = new Elysia()
     .post("/products", async ({ jwt, cookie, query, body, headers }) => {
         const { userId, shopId} = await extractId({ jwt, cookie});
         const lang: any = headers["accept-language"]?.split(",") || "sw";
-        const token = cookie.auth?.value;
+        const token = cookie.auth_token?.value;
         if (!token) {
             throw new Error(`${await getTranslation(lang, "noToken")}`)
         }
