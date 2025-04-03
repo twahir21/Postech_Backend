@@ -7,7 +7,7 @@ import { products } from "../database/schema/shop";
 
 const startTime = Date.now();
 // implementing crud for products 
-export const prodPost = async ({ body, headers, shopId, userId, categoryId, supplierId}: {body: productTypes, headers: headTypes, shopId: string, userId: string, categoryId: string, supplierId: string}) => {
+export const prodPost = async ({ body, headers, shopId, userId, supplierId, categoryId }: {body: productTypes, headers: headTypes, shopId: string, userId: string, categoryId: string, supplierId: string}) => {
     const lang = headers["accept-language"]?.split(",")[0] || "sw";
 
     try{
@@ -70,7 +70,7 @@ export const prodPost = async ({ body, headers, shopId, userId, categoryId, supp
         return {
             success: true,
             data: {name, priceBought, priceSold, stock, minStock, shopId, userId, categoryId, supplierId, unit, overallTime},
-            message: 'Success'
+            message: await getTranslation(lang, "productSuccess")
         }   
         
     }catch(error){

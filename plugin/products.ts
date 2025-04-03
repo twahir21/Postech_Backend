@@ -27,7 +27,7 @@ export const prodPlugin = new Elysia()
         }
         return prodGet({ userId, shopId });
     })
-    .post("/products", async ({ jwt, cookie, query, body, headers }) => {
+    .post("/products", async ({ jwt, cookie, body, headers }) => {
         const { userId, shopId} = await extractId({ jwt, cookie});
         const lang: any = headers["accept-language"]?.split(",") || "sw";
         const token = cookie.auth_token?.value;
@@ -39,13 +39,17 @@ export const prodPlugin = new Elysia()
         if (!decoded) {
             throw new Error("Unauthorized -  invalid token ")
         }
-        const { categoryId, supplierId } = query;
+
+        if (!(body as productTypes).categoryId || !(body as productTypes).supplierId) {
+            throw new Error('Category ID and Supplier ID are required.');
+        }
+
         return await prodPost({ 
             body: body as productTypes, 
             userId, 
             shopId, 
-            categoryId, 
-            supplierId, 
-            headers
+            headers,
+            categoryId: (body as productTypes).categoryId || "",
+            supplierId: (body as productTypes).supplierId || "",
         }); 
     })

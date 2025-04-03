@@ -41,7 +41,20 @@ export const categPost = async ({ body, headers, shopId, userId }: { body : cate
     let { generalName }: categoriesTypes = parse.data;
 
     // sanitize xss
-    generalName = xss(generalName);
+    generalName = xss(generalName.trim().toLowerCase());
+
+    // Step 1: Check if the category already exists
+    const existingCategory = await mainDb
+    .select()
+    .from(categories)
+    .where(
+        eq(categories.generalName, generalName)
+    );
+
+    // Step 2: if exist return nothing
+    if (existingCategory.length > 0) {
+        return;
+    }
 
     // now save to database
     await mainDb.insert(categories).values({

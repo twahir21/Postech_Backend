@@ -32,8 +32,23 @@ export const suppPost = async ({ body, headers, shopId}: { body : suppTypes, hea
     let { company, contact }: suppTypes = parse.data;
 
     // remove xss scripts if availabe
-    company = sanitizeString(company);
-    contact = sanitizeString(contact);
+    company = sanitizeString(company.trim().toLowerCase());
+    contact = sanitizeString(contact.trim());
+
+    // check if already exists
+    const checkSupp = await mainDb
+        .select()
+        .from(suppliers)
+        .where(eq(suppliers.company, company));
+        
+    if (checkSupp.length > 0) {
+        return {
+            success: false,
+            message: await getTranslation(lang, "exists")
+        }
+    }
+
+
 
     // now save to database
     await mainDb.insert(suppliers).values({
@@ -119,7 +134,7 @@ export const suppPut = async ({ body, headers, supplierId }: { body : suppTypes,
     let { company, contact }: suppTypes = parse.data;
 
     // sanitize to remove xss
-    company = sanitizeString(company);
+    company = sanitizeString(company.trim().toLowerCase());    
     contact = sanitizeString(contact);
 
 
@@ -211,46 +226,5 @@ export const suppDel = async ({ headers, supplierId}: {headers: headTypes, suppl
     }
 } 
 
-// fetch one 
-export const suppGetOne = async ({headers, supplierId} : {headers: headTypes, supplierId: string}) => {
-    const lang = headers["accept-language"]?.split(",")[0] || "sw";
-    try {
-
-        // Validate ID length before querying (optional)
-        if (!supplierId || supplierId.length < 5) {
-            return {
-                success: false,
-                message: await getTranslation(lang, "idErr")
-            };
-        }
-
-        const oneSupp = await mainDb.select().from(suppliers).where(eq(suppliers.id, supplierId));
-
-        if(oneSupp.length === 0) {
-            return {
-                success: false,
-                message: await getTranslation(lang, "notFound")
-            }
-        }
-
-        return {
-            success: true,
-            message: await getTranslation(lang, "success"),
-            data: oneSupp[0] || null // ensure doesnot return array
-        }
-    } catch (error) {
-        if(error instanceof Error) {
-            return {
-                success: false,
-                message: error.message
-            }
-        }else{
-            return {
-                success: false,
-                message: await getTranslation(lang, "serverErr")
-            }
-        }
-    }
-}
 
 

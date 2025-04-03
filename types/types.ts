@@ -13,6 +13,8 @@ export interface productTypes {
     stock?: number;
     minStock?: number;
     unit?: string;
+    supplierId?: string;
+    categoryId?: string;
 }
 
 export interface headTypes {

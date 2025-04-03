@@ -1,5 +1,5 @@
 import Elysia from "elysia";
-import { suppDel, suppGet, suppGetOne, suppPost, suppPut } from "../functions/suppFunc";
+import { suppDel, suppGet, suppPost, suppPut } from "../functions/suppFunc";
 import jwt from "@elysiajs/jwt";
 import { getTranslation } from "../functions/translation";
 import { extractId } from "../functions/security/jwtToken";
@@ -26,7 +26,7 @@ const suppPlugin = new Elysia()
                 throw new Error("Unauthorized -  invalid token ")
             }
 
-            return suppGet
+            return suppGet ({ headers })
         })
     .post("/suppliers", async ({ jwt, cookie, headers, body}) => {
         const { userId, shopId } = await extractId({ jwt, cookie });
@@ -79,25 +79,6 @@ const suppPlugin = new Elysia()
         const { supplierId } = query;
 
         return suppDel ({ supplierId, headers });
-    })
-
-
-    .get("/suppliers", async ({ jwt, cookie, headers, query}) => {
-        const { userId, shopId } = await extractId({ jwt, cookie });
-        const lang: any = headers["accept-language"]?.split(",") || "sw";
-        const token = cookie.auth_token?.value;
-        if (!token) {
-            throw new Error(`${await getTranslation(lang, "noToken")}`)
-        }
-
-        const decoded = await jwt.verify(token)
-        if (!decoded) {
-            throw new Error("Unauthorized -  invalid token ")
-        }
-
-        const { supplierId } = query;
-
-        return suppGetOne ({ supplierId, headers});
     })
 
 export default suppPlugin;
