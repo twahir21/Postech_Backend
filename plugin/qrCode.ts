@@ -115,6 +115,11 @@ const qrCodePlugin = new Elysia()
 
             const priceBought = priceBoughtDb[0]?.priceBought;
 
+            const nameDb = await mainDb.select({ name: products.name })
+            .from(products).where(eq(products.id, productId));
+
+            const name = nameDb[0]?.name;
+
             const logoPath = process.env.QR_LOGO_PATH || "./default_logo.png";
         
             const outputPath = `./images/qrcode_${shopId}_${productId}.png`;
@@ -126,13 +131,15 @@ const qrCodePlugin = new Elysia()
                     productId,
                     priceSold,
                     userId,
+                    name,
                     quantity: 1,
                     saleType: "cash",
                     discount: 0,
                     customerId: null,
-                    description: "purchases",
+                    description: "home Expenses",
                     amount,
-                    priceBought
+                    priceBought,
+                    generatedAt: new Date().toISOString()
                 },
             };
 
