@@ -3,7 +3,8 @@ import type { headTypes, productTypes } from "../types/types";
 import { getTranslation } from "./translation";
 import { sanitizeNumber, sanitizeString } from "./security/xss";
 import { mainDb } from "../database/schema/connections/mainDb";
-import { products } from "../database/schema/shop";
+import { products, purchases, supplierPriceHistory } from "../database/schema/shop";
+import { eq } from "drizzle-orm";
 
 const startTime = Date.now();
 // implementing crud for products 
@@ -32,7 +33,7 @@ export const prodPost = async ({ body, headers, shopId, userId, supplierId, cate
         if (!parsed.success) {
             return {
                 success: false,
-                messsage: parsed.error.format()
+                message: parsed.error.format()
             }
         }
 
@@ -52,20 +53,50 @@ export const prodPost = async ({ body, headers, shopId, userId, supplierId, cate
         const endTime = Date.now();
         const overallTime = `Time taken: ${endTime - startTime}ms`;
 
+        // priceBought
 
-
-        // now save to database
-        await mainDb.insert(products).values({
+        // now save to database to products
+        const [insertedProduct] = await mainDb.insert(products).values({
             name,
             categoryId,
-            priceBought,
             priceSold,
-            stock, 
+            stock,
             supplierId,
             shopId,
-            minStock, 
-            unit
+            minStock,
+            unit,
+          }).returning({ id: products.id });
+          
+          if (!insertedProduct) {
+            throw new Error("Hakuna bidhaa kwa jina hili");
+          }
+          
+          const productId = insertedProduct.id;
+
+
+
+          if (!insertedProduct || !insertedProduct.id) {
+            throw new Error("Hakuna bidhaa kwa jina hili");
+          }
+
+
+        // now save to purchases
+        await mainDb.insert(purchases).values({
+            supplierId,
+            productId: productId,
+            shopId,
+            quantity: stock,
+            priceBought,
+            totalCost: priceBought * stock,
         });
+
+        // insert supplier price history
+        await mainDb.insert(supplierPriceHistory).values({
+            supplierId,
+            productId: productId,
+            shopId,
+            price: priceBought
+        })
 
         return {
             success: true,
@@ -89,7 +120,7 @@ export const prodPost = async ({ body, headers, shopId, userId, supplierId, cate
 }
 
 
-export const prodGet = ({userId, shopId}: any) => {
+export const prodGet = ({userId, shopId}: {userId: string, shopId: string}) => {
     return {
         shopId, 
         userId

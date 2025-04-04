@@ -110,7 +110,7 @@ import {
   export const supplierPriceHistory = pgTable("supplier_price_history", {
     id: uuid("id").defaultRandom().primaryKey(),
     supplierId: uuid("supplier_id").notNull().references(() => suppliers.id),
-    productId: uuid("product_id").notNull().references(() => products.id, {onDelete: "set null"}),
+    productId: uuid("product_id").notNull().references(() => products.id, {onDelete: "cascade"}),
     shopId: uuid("shop_id").notNull().references(() => shops.id),
     price: numeric("price").notNull(),
     dateAdded: timestamp("date_added").defaultNow(),
