@@ -22,7 +22,7 @@ if (!JWT_TOKEN) {
 // 🚀 QR Code API Route
 const qrCodePlugin = new Elysia()
   .use(jwt({ name: "jwt", secret: JWT_TOKEN }))
-  .get("/generate-qrcode", async ({ jwt, cookie, set }) => {
+  .get("/check-isQrCode", async ({ jwt, cookie }) => {
     try {
       const { userId, shopId } = await extractId({ jwt, cookie });
 
@@ -38,15 +38,37 @@ const qrCodePlugin = new Elysia()
 
       // Return early if no products require QR code generation
       if (productList.length === 0) {
-        return { success: true, message: "No products require QR code generation." };
+        return { success: false, message: "No products require QR code generation." };
       }
+
+      return { success: true, message: "Products found for QR code generation." };
+      
+    } catch (error) {
+      console.error("Error checking QR code status:", error);
+      return { success: false, message: "An error occurred while checking QR code status." };
+    }
+  })
+  .get("/generate-qrcode", async ({ jwt, cookie, set }) => {
+    try {
+      const { userId, shopId } = await extractId({ jwt, cookie });
+
+      // Fetch all products where isQRCode is false
+      const productList = await mainDb
+        .select({
+          id: products.id,
+          name: products.name,
+          priceSold: products.priceSold,
+        })
+        .from(products)
+        .where(eq(products.isQRCode, false));
+
 
       const shopName = await mainDb
         .select({ name: shops.name })
         .from(shops)
         .where(eq(shops.id, shopId))
         .then((res) => res[0]?.name);
-        
+
       if (!shopName) {  
         return { success: false, message: "Shop not found." };
       }
