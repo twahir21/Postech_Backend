@@ -89,7 +89,6 @@ import {
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
     isQRCode: boolean("is_qr_code").default(false), // Tracks if QR code is generated
-    isPDF: boolean("is_pdf").default(false),      
   });
 
   // -----------------
