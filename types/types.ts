@@ -34,3 +34,11 @@ export interface loginTypes {
     username?: string;
     password?: string;
 }
+
+
+export interface ProductQuery {
+    search?: string;
+    page?: string;
+    limit?: string;
+  }
+  

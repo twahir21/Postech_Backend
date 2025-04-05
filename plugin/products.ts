@@ -13,7 +13,7 @@ export const prodPlugin = new Elysia()
         name: 'jwt',
         secret: JWT_SECRET,
     }))
-    .get("/products", async ({ jwt, cookie, headers}) => {
+    .get("/products", async ({ jwt, cookie, headers, query }) => {
         const { userId, shopId } = await extractId({ jwt, cookie });
         const lang: any = headers["accept-language"]?.split(",") || "sw";
         const token = cookie.auth_token?.value;
@@ -23,9 +23,10 @@ export const prodPlugin = new Elysia()
 
         const decoded = await jwt.verify(token)
         if (!decoded) {
-            throw new Error("Unauthorized -  invalid token ")
+            throw new Error("Unauthorized -  invalid token ");
         }
-        return prodGet({ userId, shopId });
+
+        return await prodGet({ userId, shopId, headers, query, set: { status: 200 } });
     })
     .post("/products", async ({ jwt, cookie, body, headers }) => {
         const { userId, shopId} = await extractId({ jwt, cookie});
