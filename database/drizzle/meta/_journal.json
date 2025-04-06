@@ -50,6 +50,13 @@
       "when": 1743924801297,
       "tag": "0006_bored_snowbird",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1743924841156,
+      "tag": "0007_moaning_bloodstorm",
+      "breakpoints": true
     }
   ]
 }

@@ -131,7 +131,7 @@ import {
     priceSold: integer("price_sold").notNull(), // this is mandatory for calculating total price
     // total_price and net_price can be computed on the fly in queries
     totalSales: integer("total_sales").notNull(),
-    discount: integer("discount").notNull().default("0"),
+    discount: integer("discount").notNull().default(0),
     shopId: uuid("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
     saleType: text("sale_type").notNull().default("cash"),
     customerId: uuid("customer_id"), // Nullable for cash sales
