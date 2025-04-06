@@ -1,0 +1,1 @@
+ALTER TABLE "analytics" ALTER COLUMN "total_gross_profit" SET DEFAULT 0;

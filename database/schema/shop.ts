@@ -217,6 +217,6 @@ import {
     lowestStockProduct: uuid("lowest_stock_product").references(() => products.id),
     shopId: uuid("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
     mostBuyingCustomer: uuid("most_buying_customer").references(() => customers.id),
-    totalGrossProfit: integer("total_gross_profit").notNull().default("0"),
+    totalGrossProfit: integer("total_gross_profit").notNull().default(0),
   });
   
