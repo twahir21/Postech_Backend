@@ -59,7 +59,7 @@ export const prodPost = async ({ body, headers, shopId, userId, supplierId, cate
         const [insertedProduct] = await mainDb.insert(products).values({
             name,
             categoryId,
-            priceSold,
+            priceSold: parseFloat(priceSold.toString()),
             stock,
             supplierId,
             shopId,
@@ -316,11 +316,11 @@ export const prodUpdate = async ({userId, shopId, productId, body, headers}: {us
             quantity: sanitizedStock,
             priceBought,
             totalCost: priceBought * sanitizedStock,
-            
+
         }).where(eq(purchases.productId, productId));
 
         await mainDb.update(supplierPriceHistory).set({
-            price: String(priceBought)
+            price: priceBought
         }).where(eq(supplierPriceHistory.productId, productId));
 
         // set isQrCode to false

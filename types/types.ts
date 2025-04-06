@@ -42,3 +42,7 @@ export interface ProductQuery {
     limit?: string;
   }
   
+export interface CustomerTypes {
+    name?: string;
+    contact?: string;
+}

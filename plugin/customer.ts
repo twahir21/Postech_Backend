@@ -1,14 +1,14 @@
 import jwt from "@elysiajs/jwt";
 import Elysia from "elysia";
 import { extractId } from "../functions/security/jwtToken";
-import { prodDel, prodGet, prodPost, prodUpdate } from "../functions/prodFunc";
-import type { productTypes } from "../types/types";
 import { getTranslation } from "../functions/translation";
+import type { CustomerTypes } from "../types/types";
+import { customerPost } from "../functions/customerFunc";
 
 const JWT_SECRET = process.env.JWT_TOKEN || "something@#morecomplicated<>es>??><Ess5%";
 
 
-export const prodPlugin = new Elysia()
+export const CustomersPlugin = new Elysia()
     .use(jwt({
         name: 'jwt',
         secret: JWT_SECRET,
@@ -28,7 +28,7 @@ export const prodPlugin = new Elysia()
 
         return await prodGet({ userId, shopId, headers, query, set: { status: 200 } });
     })
-    .post("/products", async ({ jwt, cookie, body, headers }) => {
+    .post("/customers", async ({ jwt, cookie, body, headers }) => {
         const { userId, shopId} = await extractId({ jwt, cookie});
         const lang: any = headers["accept-language"]?.split(",") || "sw";
         const token = cookie.auth_token?.value;
@@ -41,17 +41,15 @@ export const prodPlugin = new Elysia()
             throw new Error("Unauthorized -  invalid token ")
         }
 
-        if (!(body as productTypes).categoryId || !(body as productTypes).supplierId) {
-            throw new Error('Category ID and Supplier ID are required.');
+        if (!(body as CustomerTypes).name || !(body as CustomerTypes).contact) {
+            throw new Error('Customer name and contacts are required.');
         }
 
-        return await prodPost({ 
-            body: body as productTypes, 
+        return await customerPost({ 
+            body: body as CustomerTypes, 
             userId, 
             shopId, 
             headers,
-            categoryId: (body as productTypes).categoryId || "",
-            supplierId: (body as productTypes).supplierId || "",
         }); 
     })
     .delete("/products/:id", async ({ jwt, cookie, set, params, headers }) => {

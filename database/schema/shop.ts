@@ -2,7 +2,6 @@ import {
     pgTable,
     uuid,
     text,
-    numeric,
     integer,
     timestamp,
     uniqueIndex, 
@@ -79,7 +78,7 @@ import {
     id: uuid("id").defaultRandom().primaryKey(),
     name: text("name").notNull().unique(),
     categoryId: uuid("category_id").references(() => categories.id, { onDelete: "set null" }),
-    priceSold: numeric("price_sold").notNull(),
+    priceSold: integer("price_sold").notNull(), // Changed to bigint
     stock: integer("stock").notNull(),
     shopId: uuid("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
     supplierId: uuid("supplier_id").notNull().references(() => suppliers.id, { onDelete: "cascade" }),
@@ -100,8 +99,8 @@ import {
     supplierId: uuid("supplier_id").notNull().references(() => suppliers.id, { onDelete: "cascade" }),
     shopId: uuid("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
     quantity: integer("quantity").notNull(), // Amount added to stock
-    priceBought: numeric("price_bought").notNull(), // Cost price per unit
-    totalCost: numeric("total_cost").notNull(), // quantity * priceBought
+    priceBought: integer("price_bought").notNull(), // Cost price per unit
+    totalCost: integer("total_cost").notNull(), // quantity * priceBought
     purchaseDate: timestamp("purchase_date").defaultNow(),
   });
 
@@ -114,7 +113,7 @@ import {
     supplierId: uuid("supplier_id").notNull().references(() => suppliers.id),
     productId: uuid("product_id").notNull().references(() => products.id, {onDelete: "cascade"}),
     shopId: uuid("shop_id").notNull().references(() => shops.id),
-    price: numeric("price").notNull(),
+    price: integer("price").notNull(),
     dateAdded: timestamp("date_added").defaultNow(),
 }, (table) => ({
     uniqueSupplierProduct: uniqueIndex("unique_supplier_product").on(table.supplierId, table.productId, table.shopId),
@@ -129,10 +128,10 @@ import {
     id: uuid("id").defaultRandom().primaryKey(),
     productId: uuid("product_id").notNull().references(() => products.id, {onDelete: "set null"}),
     quantity: integer("quantity").notNull(),
-    priceSold: numeric("price_sold").notNull(), // this is mandatory for calculating total price
+    priceSold: integer("price_sold").notNull(), // this is mandatory for calculating total price
     // total_price and net_price can be computed on the fly in queries
-    totalSales: numeric("total_sales").notNull(),
-    discount: numeric("discount").notNull().default("0"),
+    totalSales: integer("total_sales").notNull(),
+    discount: integer("discount").notNull().default("0"),
     shopId: uuid("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
     saleType: text("sale_type").notNull().default("cash"),
     customerId: uuid("customer_id"), // Nullable for cash sales
@@ -145,8 +144,8 @@ import {
   export const debts = pgTable("debts", {
     id: uuid("id").defaultRandom().primaryKey(),
     customerId: uuid("customer_id").notNull(), // FK to customers.id
-    totalAmount: numeric("total_amount").notNull(),
-    remainingAmount: numeric("remaining_amount").notNull(),
+    totalAmount: integer("total_amount").notNull(),
+    remainingAmount: integer("remaining_amount").notNull(),
     shopId: uuid("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
     lastPaymentDate: timestamp("last_payment_date"),
     createdAt: timestamp("created_at").defaultNow(),
@@ -159,7 +158,7 @@ import {
     id: uuid("id").defaultRandom().primaryKey(),
     debtId: uuid("debt_id").references(() => debts.id,{onDelete: "cascade"}),
     shopId: uuid("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
-    amountPaid: numeric("amount_paid").notNull(),
+    amountPaid: integer("amount_paid").notNull(),
     paymentDate: timestamp("payment_date").defaultNow(),
   });
   
@@ -168,7 +167,7 @@ import {
   // -----------------
   export const customers = pgTable("customers", {
     id: uuid("id").defaultRandom().primaryKey(),
-    name: text("name").notNull(),
+    name: text("name").notNull().unique(),
     shopId: uuid("shop_id").notNull().references(() => shops.id), // NEW: Links product to a shop
     contact: text("contact").notNull().unique(), // index via this
     // total_debt and longest_debt are calculated via queries (aggregated), so they are not stored here
@@ -192,7 +191,7 @@ import {
   export const expenses = pgTable("expenses", {
     id: uuid("id").defaultRandom().primaryKey(),
     description: text("description").notNull(),
-    amount: numeric("amount").notNull(),
+    amount: integer("amount").notNull(),
     shopId: uuid("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
     date: timestamp("date").defaultNow(),
   });
@@ -218,6 +217,6 @@ import {
     lowestStockProduct: uuid("lowest_stock_product").references(() => products.id),
     shopId: uuid("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
     mostBuyingCustomer: uuid("most_buying_customer").references(() => customers.id),
-    totalGrossProfit: numeric("total_gross_profit").notNull().default("0"),
+    totalGrossProfit: integer("total_gross_profit").notNull().default("0"),
   });
   
