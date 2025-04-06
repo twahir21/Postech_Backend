@@ -57,12 +57,6 @@ export const customerPost = async ({ body, userId, shopId, headers}: {
             shopId,
         });
     const data = insertCustomers[0];
-    if (!data) {
-        return {
-            success: false,
-            message: "Tatizo limejitokeza",
-        }
-    }
 
     return {
         success: true,

@@ -15,7 +15,7 @@ import { prodPlugin } from "./plugin/products";
 import automateTasks from "./plugin/autoSales";
 import { mailPlugin } from "./plugin/email/smtp";
 import cookie from "@elysiajs/cookie";
-import jwt from "@elysiajs/jwt";
+import { CustomersPlugin } from "./plugin/customer";
 
 const startTime = Date.now(); // Start time tracking
 
@@ -65,6 +65,7 @@ new Elysia()
     .use(qrCodePlugin)
     .use(automateTasks)
     .use(mailPlugin)
+    .use(CustomersPlugin)
 
 .listen(3000);
 const endTime = Date.now(); // Start time tracking
