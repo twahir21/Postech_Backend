@@ -4,7 +4,7 @@ import { getTranslation } from "./translation";
 import { sanitizeNumber, sanitizeString } from "./security/xss";
 import { mainDb } from "../database/schema/connections/mainDb";
 import { products, purchases, supplierPriceHistory } from "../database/schema/shop";
-import { ilike, sql } from "drizzle-orm";
+import { eq, ilike, sql } from "drizzle-orm";
 
 const startTime = Date.now();
 // implementing crud for products 
@@ -144,20 +144,44 @@ export const prodGet = async ({userId, shopId, query, set, headers}: {userId: st
   
     // Get paginated products
     const rows = await mainDb
-      .select()
-      .from(products)
-      .where(where)
-      .orderBy(products.createdAt)
-      .limit(limit)
-      .offset(offset);
-
+    .select({
+      id: products.id,
+      name: products.name,
+      categoryId: products.categoryId,
+      priceSold: products.priceSold,
+      stock: products.stock,
+      shopId: products.shopId,
+      supplierId: products.supplierId,
+      minStock: products.minStock,
+      status: products.status,
+      unit: products.unit,
+      createdAt: products.createdAt,
+      updatedAt: products.updatedAt,
+      isQRCode: products.isQRCode,
+      priceBought: purchases.priceBought, // 🎯 pulled via LEFT JOIN
+    })
+    .from(products)
+    .leftJoin(purchases, eq(products.id, purchases.productId)) // left join to preserve products even without purchases
+    .where(where)
+    .orderBy(products.createdAt)
+    .limit(limit)
+    .offset(offset);
+  
     if (rows.length === 0) {
         set.status = 204;
         return { success: false, data: [], total };
     }
   
     set.status = 200;
-    return { success: true, data: rows, total };
+    return {
+        success: true,
+        data: rows.map((row) => ({
+          ...row,
+          priceSold: Number(row.priceSold),
+          priceBought: row.priceBought !== null ? Number(row.priceBought) : null,
+        })),
+        total,
+      };
   } catch (error) {
     if (error instanceof Error) {
         return {
@@ -171,4 +195,179 @@ export const prodGet = async ({userId, shopId, query, set, headers}: {userId: st
         }
     }
   }
+}
+
+
+export const prodDel = async ({userId, shopId, productId, headers}: {userId: string, shopId: string, productId: string, headers: headTypes}) => {
+    const lang = headers["accept-language"]?.split(",")[0] || "sw";
+    try{
+        // check if product exists
+        const product = await mainDb
+        .select()
+        .from(products)
+        .where(eq(products.id, productId))
+        .then((rows) => rows[0]);
+    
+        if (!product) {
+            return {
+                success: false,
+                message: "Hakuna bidhaa kwa jina hili"
+            }
+        }
+    
+        // delete product
+        await mainDb.delete(products).where(eq(products.id, productId));
+    
+        return {
+            success: true,
+            message: "Bidhaa imeondolewa kwa mafanikio"
+        }
+    }catch(error){
+        if (error instanceof Error) {
+            return {
+                messsage: error.message,
+                success: false
+            }
+        }else{
+            return {
+                messsage: sanitizeString(await getTranslation(lang, "serverErr")),
+                success: false
+            }
+        }
+    }
+}
+
+
+export const prodUpdate = async ({userId, shopId, productId, body, headers}: {userId: string, shopId: string, productId: string, body: productTypes, headers: headTypes}) => {
+    const lang = headers["accept-language"]?.split(",")[0] || "sw";
+    try{
+    // Fetch translations once instead of waiting inside the schema validation
+    const prodNameErr = await getTranslation(lang, "ProdNameErr");
+    const priceErr = await getTranslation(lang, "priceErr");
+    const stockErr = await getTranslation(lang, "stockErr");
+    const unitErr = await getTranslation(lang, "unitErr");
+
+    // Validate product data
+    const schema = z.object({
+        name: z.string().min(3, prodNameErr),
+        priceBought: z.number().min(1, priceErr),
+        priceSold: z.number().min(1, priceErr),
+        stock: z.number().min(0, stockErr),
+        minStock: z.number().min(0, stockErr),
+        unit: z.string().min(1, unitErr)
+    });
+    
+        const parsed = schema.safeParse(body);
+    
+        if (!parsed.success) {
+            return {
+                success: false,
+                message: parsed.error.format()
+            }
+        }
+
+
+
+        let  {name, priceBought, priceSold, stock, minStock, unit} : productTypes = parsed.data;
+
+
+        // sanitize or remove xss scripts if available
+        name = sanitizeString(name);
+        priceBought = sanitizeNumber(priceBought);
+        priceSold = sanitizeNumber(priceSold);
+        stock = sanitizeNumber(stock);
+        minStock = sanitizeNumber(minStock);
+        unit = sanitizeString(unit);
+
+
+
+        // check if product exists
+        const product = await mainDb
+        .select()
+        .from(products)
+        .where(eq(products.id, productId))
+        .then((rows) => rows[0]);
+    
+        if (!product) {
+            return {
+                success: false,
+                message: "Hakuna bidhaa kwa jina hili"
+            }
+        }
+    
+        // update product
+        const sanitizedStock = Math.max(0, stock);
+
+
+        await mainDb.update(products).set({
+            name,
+            stock: sanitizedStock, // prevent negative stock
+            minStock,
+            unit,
+            status: sanitizedStock <= 0 ? 'finished' : 'available', // auto-update status
+            priceSold,
+            updatedAt: new Date(),
+            isQRCode: false
+            
+        }).where(eq(products.id, productId));
+
+        // purchases
+        await mainDb.update(purchases).set({
+            quantity: sanitizedStock,
+            priceBought,
+            totalCost: priceBought * sanitizedStock,
+            
+        }).where(eq(purchases.productId, productId));
+
+        await mainDb.update(supplierPriceHistory).set({
+            price: String(priceBought)
+        }).where(eq(supplierPriceHistory.productId, productId));
+
+        // set isQrCode to false
+        await mainDb.update(products).set({
+            isQRCode: false
+        }).where(eq(products.id, productId));
+
+        const updatedProduct = await mainDb
+        .select({
+            id: products.id,
+            name: products.name,
+            stock: products.stock,
+            minStock: products.minStock,
+            unit: products.unit,
+            status: products.status,
+            priceSold: products.priceSold,
+            isQRCode: products.isQRCode,
+            updatedAt: products.updatedAt,
+            priceBought: purchases.priceBought, // 👈 include from purchases
+        })
+        .from(products)
+        .leftJoin(purchases, eq(products.id, purchases.productId))
+        .where(eq(products.id, productId))
+        .limit(1)
+        .then(rows => rows[0]);
+        
+        if (!updatedProduct) {
+            throw new Error("Hakuna bidhaa kwa jina hili");
+          }
+    
+        return {
+            success: true,
+            data: updatedProduct,
+            message: await getTranslation(lang, "success")
+        }
+
+    }catch(error){
+        if (error instanceof Error) {
+            return {
+                messsage: error.message,
+                success: false
+            }
+        }else{
+            return {
+                messsage: sanitizeString(await getTranslation(lang, "serverErr")),
+                success: false
+            }
+        }
+    }
 }
