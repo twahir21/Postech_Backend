@@ -46,3 +46,12 @@ export interface CustomerTypes {
     name?: string;
     contact?: string;
 }
+
+export interface QrData {
+    calculatedTotal: number;
+    quantity: number;
+    saleType: string;
+    discount: number;
+    description: string;
+    typeDetected: string;
+}

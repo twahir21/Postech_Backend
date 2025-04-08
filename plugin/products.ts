@@ -1,8 +1,8 @@
 import jwt from "@elysiajs/jwt";
 import Elysia from "elysia";
 import { extractId } from "../functions/security/jwtToken";
-import { prodDel, prodGet, prodPost, prodUpdate } from "../functions/prodFunc";
-import type { productTypes } from "../types/types";
+import { prodDel, prodGet, prodPost, prodUpdate, QrPost } from "../functions/prodFunc";
+import type { productTypes, QrData } from "../types/types";
 import { getTranslation } from "../functions/translation";
 
 const JWT_SECRET = process.env.JWT_TOKEN || "something@#morecomplicated<>es>??><Ess5%";
@@ -103,3 +103,23 @@ export const prodPlugin = new Elysia()
             productId,
         });
     })
+    .post("/get-data", async ({ jwt, cookie, body, headers }) => {
+        const { userId, shopId} = await extractId({ jwt, cookie});
+        const lang: any = headers["accept-language"]?.split(",") || "sw";
+        const token = cookie.auth_token?.value;
+        if (!token) {
+            throw new Error(`${await getTranslation(lang, "noToken")}`)
+        }
+
+        const decoded = await jwt.verify(token)
+        if (!decoded) {
+            throw new Error("Unauthorized -  invalid token ")
+        }
+
+        return await QrPost({ 
+            body: body as QrData, 
+            userId, 
+            shopId, 
+            headers,
+        }); 
+    });

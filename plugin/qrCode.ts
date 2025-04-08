@@ -112,7 +112,6 @@ const qrCodePlugin = new Elysia()
             discount: 0,
             customerId: null,
             description: "home Expenses",
-            amount,
             priceBought,
             generatedAt: new Date().toISOString(),
           },

@@ -1,9 +1,9 @@
 import { z } from "zod"
-import type { headTypes, ProductQuery, productTypes } from "../types/types";
+import type { headTypes, ProductQuery, productTypes, QrData } from "../types/types";
 import { getTranslation } from "./translation";
 import { sanitizeNumber, sanitizeString } from "./security/xss";
 import { mainDb } from "../database/schema/connections/mainDb";
-import { products, purchases, supplierPriceHistory } from "../database/schema/shop";
+import { expenses, products, purchases, supplierPriceHistory } from "../database/schema/shop";
 import { eq, ilike, sql } from "drizzle-orm";
 
 const startTime = Date.now();
@@ -358,6 +358,97 @@ export const prodUpdate = async ({userId, shopId, productId, body, headers}: {us
         }
 
     }catch(error){
+        if (error instanceof Error) {
+            return {
+                messsage: error.message,
+                success: false
+            }
+        }else{
+            return {
+                messsage: sanitizeString(await getTranslation(lang, "serverErr")),
+                success: false
+            }
+        }
+    }
+}
+
+export const QrPost = async({ body, headers, userId, shopId }: { body: QrData, headers: headTypes, userId: string, shopId: string }) => {
+    const lang = headers["accept-language"]?.split(",")[0] || "sw";
+
+    try{
+    // Fetch translations once instead of waiting inside the schema validation
+    const prodNameErr = await getTranslation(lang, "ProdNameErr");
+    const priceErr = await getTranslation(lang, "priceErr");
+    const stockErr = await getTranslation(lang, "stockErr");
+    const unitErr = await getTranslation(lang, "unitErr");
+    
+    // Validate product data
+    const schema = z.object({
+        calculatedTotal: z.number().min(0, "Jumla haiwezi kuwa chini ya 0"),
+        quantity: z.number().min(0, "Kiasi hakiwezi kuwa chini ya 0"),
+        saleType: z.string().min(3, "Haiwezi kuwa chini ya herufi 3"),
+        discount: z.number().min(-1, "Punguzo haliwezi kuwa chini ya 0"),
+        description: z.string().min(3, "Maelezo hayawezi kuwa chini ya herufi 3"),
+        typeDetected: z.string().min(3, "Chaguo haliwezi kuwa na herufi chini ya 3")
+    });
+        
+    const parsed = schema.safeParse(body);
+
+    if (!parsed.success) {
+        return {
+            success: false,
+            message: parsed.error.format()
+        }
+    }
+
+
+    let  { calculatedTotal, quantity, saleType, discount, description, typeDetected } : QrData = parsed.data;
+
+
+    // sanitize or remove xss scripts if available
+    saleType = sanitizeString(saleType);
+    calculatedTotal = sanitizeNumber(calculatedTotal);
+    quantity = sanitizeNumber(quantity);
+    discount = sanitizeNumber(discount);
+    typeDetected = sanitizeString(typeDetected);
+    description = sanitizeString(description);
+
+    // switch 
+    switch(typeDetected){
+        case 'expenses':
+            // save to expenses 
+            await mainDb.insert(expenses).values({
+                description,
+                amount: calculatedTotal,
+                shopId
+            });
+
+            return {
+                success: true,
+                message: "Matumizi yamehifadhiwa kikamilifu"
+            }
+
+        case 'sales':
+            console.log("Sales detected")
+        break;
+
+        case 'purchases':
+            console.log("Purchases detected")
+        break;
+
+        default:
+            console.log("Invalid Data!")
+    }
+    
+    console.log(saleType, calculatedTotal, quantity, discount, description, typeDetected)
+
+    return {
+        success: true,
+        message: "Nice implementations"
+    }
+
+    }catch(error){
+
         if (error instanceof Error) {
             return {
                 messsage: error.message,
