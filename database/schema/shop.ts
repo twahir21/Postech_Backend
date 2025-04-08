@@ -171,6 +171,7 @@ import {
     shopId: uuid("shop_id").notNull().references(() => shops.id), // NEW: Links product to a shop
     contact: text("contact").notNull().unique(), // index via this
     // total_debt and longest_debt are calculated via queries (aggregated), so they are not stored here
+    createdAt: timestamp("created_at").defaultNow(),
   });
   
   // -----------------
