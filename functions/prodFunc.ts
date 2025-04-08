@@ -3,7 +3,7 @@ import type { headTypes, ProductQuery, productTypes, QrData } from "../types/typ
 import { getTranslation } from "./translation";
 import { sanitizeNumber, sanitizeString } from "./security/xss";
 import { mainDb } from "../database/schema/connections/mainDb";
-import { expenses, products, purchases, supplierPriceHistory } from "../database/schema/shop";
+import { expenses, products, purchases, sales, supplierPriceHistory } from "../database/schema/shop";
 import { eq, ilike, sql } from "drizzle-orm";
 
 const startTime = Date.now();
@@ -376,12 +376,6 @@ export const QrPost = async({ body, headers, userId, shopId }: { body: QrData, h
     const lang = headers["accept-language"]?.split(",")[0] || "sw";
 
     try{
-    // Fetch translations once instead of waiting inside the schema validation
-    const prodNameErr = await getTranslation(lang, "ProdNameErr");
-    const priceErr = await getTranslation(lang, "priceErr");
-    const stockErr = await getTranslation(lang, "stockErr");
-    const unitErr = await getTranslation(lang, "unitErr");
-    
     // Validate product data
     const schema = z.object({
         calculatedTotal: z.number().min(0, "Jumla haiwezi kuwa chini ya 0"),
@@ -390,7 +384,8 @@ export const QrPost = async({ body, headers, userId, shopId }: { body: QrData, h
         discount: z.number().min(-1, "Punguzo haliwezi kuwa chini ya 0"),
         description: z.string().min(3, "Maelezo hayawezi kuwa chini ya herufi 3"),
         typeDetected: z.string().min(3, "Chaguo haliwezi kuwa na herufi chini ya 3"),
-        productId: z.string().min(5, "Id haiwezi kuwa na herufi chini ya 5")
+        productId: z.string().min(5, "Id haiwezi kuwa na herufi chini ya 5"),
+        priceSold: z.number().min(3, "Bei haiwezi kuwa chini ya shilingi 3")
     });
         
     const parsed = schema.safeParse(body);
@@ -403,7 +398,7 @@ export const QrPost = async({ body, headers, userId, shopId }: { body: QrData, h
     }
 
 
-    let  { calculatedTotal, quantity, saleType, discount, description, typeDetected, productId } : QrData = parsed.data;
+    let  { calculatedTotal, quantity, saleType, discount, description, typeDetected, productId, priceSold } : QrData = parsed.data;
 
 
     // sanitize or remove xss scripts if available
@@ -414,6 +409,7 @@ export const QrPost = async({ body, headers, userId, shopId }: { body: QrData, h
     typeDetected = sanitizeString(typeDetected);
     description = sanitizeString(description);
     productId = sanitizeString(productId);
+    priceSold = sanitizeNumber(priceSold);
 
 
     // switch 
@@ -432,7 +428,28 @@ export const QrPost = async({ body, headers, userId, shopId }: { body: QrData, h
             }
 
         case 'sales':
-            console.log("Sales detected")
+            // check if sales or debt
+            if(saleType === "cash"){
+                // save to cash
+                await mainDb.insert(sales).values({
+                    productId,
+                    quantity,
+                    priceSold,
+                    totalSales: calculatedTotal,
+                    discount,
+                    shopId,
+                    saleType: "cash",
+                    customerId: null
+                });
+
+                return {
+                    success: true,
+                    message: "Mauzo yamehifadhiwa kiukamilifu"
+                }
+            }else{
+                // save to debts
+                console.log("Debt detected")
+            }
         break;
 
         case 'purchases':
