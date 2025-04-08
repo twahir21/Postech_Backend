@@ -389,7 +389,8 @@ export const QrPost = async({ body, headers, userId, shopId }: { body: QrData, h
         saleType: z.string().min(3, "Haiwezi kuwa chini ya herufi 3"),
         discount: z.number().min(-1, "Punguzo haliwezi kuwa chini ya 0"),
         description: z.string().min(3, "Maelezo hayawezi kuwa chini ya herufi 3"),
-        typeDetected: z.string().min(3, "Chaguo haliwezi kuwa na herufi chini ya 3")
+        typeDetected: z.string().min(3, "Chaguo haliwezi kuwa na herufi chini ya 3"),
+        productId: z.string().min(5, "Id haiwezi kuwa na herufi chini ya 5")
     });
         
     const parsed = schema.safeParse(body);
@@ -402,7 +403,7 @@ export const QrPost = async({ body, headers, userId, shopId }: { body: QrData, h
     }
 
 
-    let  { calculatedTotal, quantity, saleType, discount, description, typeDetected } : QrData = parsed.data;
+    let  { calculatedTotal, quantity, saleType, discount, description, typeDetected, productId } : QrData = parsed.data;
 
 
     // sanitize or remove xss scripts if available
@@ -412,6 +413,8 @@ export const QrPost = async({ body, headers, userId, shopId }: { body: QrData, h
     discount = sanitizeNumber(discount);
     typeDetected = sanitizeString(typeDetected);
     description = sanitizeString(description);
+    productId = sanitizeString(productId);
+
 
     // switch 
     switch(typeDetected){
@@ -440,7 +443,6 @@ export const QrPost = async({ body, headers, userId, shopId }: { body: QrData, h
             console.log("Invalid Data!")
     }
     
-    console.log(saleType, calculatedTotal, quantity, discount, description, typeDetected)
 
     return {
         success: true,
