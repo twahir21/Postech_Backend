@@ -385,7 +385,10 @@ export const QrPost = async({ body, headers, userId, shopId }: { body: QrData, h
         description: z.string().min(3, "Maelezo hayawezi kuwa chini ya herufi 3"),
         typeDetected: z.string().min(3, "Chaguo haliwezi kuwa na herufi chini ya 3"),
         productId: z.string().min(5, "Id haiwezi kuwa na herufi chini ya 5"),
-        priceSold: z.number().min(3, "Bei haiwezi kuwa chini ya shilingi 3")
+        priceSold: z.number().min(3, "Bei haiwezi kuwa chini ya shilingi 3"),
+        priceBought: z.number().min(3, "Bei haiwezi kuwa chini ya shilingi 3"),
+        supplierId: z.string().min(3, "Id haiwezi kuwa na herufi chini ya 3")
+
     });
         
     const parsed = schema.safeParse(body);
@@ -398,8 +401,7 @@ export const QrPost = async({ body, headers, userId, shopId }: { body: QrData, h
     }
 
 
-    let  { calculatedTotal, quantity, saleType, discount, description, typeDetected, productId, priceSold } : QrData = parsed.data;
-
+    let  { calculatedTotal, quantity, saleType, discount, description, typeDetected, productId, priceSold, priceBought, supplierId } : QrData = parsed.data;
 
     // sanitize or remove xss scripts if available
     saleType = sanitizeString(saleType);
@@ -410,6 +412,9 @@ export const QrPost = async({ body, headers, userId, shopId }: { body: QrData, h
     description = sanitizeString(description);
     productId = sanitizeString(productId);
     priceSold = sanitizeNumber(priceSold);
+    priceBought = sanitizeNumber(priceBought);
+    supplierId = sanitizeString(supplierId);
+
 
 
     // switch 
@@ -453,7 +458,20 @@ export const QrPost = async({ body, headers, userId, shopId }: { body: QrData, h
         break;
 
         case 'purchases':
-            console.log("Purchases detected")
+            // save to purchases
+            await mainDb.insert(purchases).values({
+                productId,
+                supplierId,
+                shopId,
+                quantity,
+                priceBought,
+                totalCost: calculatedTotal
+            })
+
+        return {
+            success: true,
+            message: "Manunuzi yamehifadhiwa kiukamilifu"
+        }
         break;
 
         default:

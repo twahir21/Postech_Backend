@@ -58,6 +58,7 @@ const qrCodePlugin = new Elysia()
           id: products.id,
           name: products.name,
           priceSold: products.priceSold,
+          supplierId: products.supplierId
         })
         .from(products)
         .where(eq(products.isQRCode, false));
@@ -102,10 +103,9 @@ const qrCodePlugin = new Elysia()
 
         const prodData = {
           product: {
-            shopId,
             productId: product.id,
             priceSold: product.priceSold,
-            userId,
+            supplierId: product.supplierId,
             name: product.name,
             quantity: 1,
             saleType: "cash",
