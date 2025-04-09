@@ -16,6 +16,7 @@ import automateTasks from "./plugin/autoSales";
 import { mailPlugin } from "./plugin/email/smtp";
 import cookie from "@elysiajs/cookie";
 import { CustomersPlugin } from "./plugin/customer";
+import analyticsRoute from "./plugin/analytics";
 
 const startTime = Date.now(); // Start time tracking
 
@@ -66,6 +67,7 @@ new Elysia()
     .use(automateTasks)
     .use(mailPlugin)
     .use(CustomersPlugin)
+    .use(analyticsRoute)
 
 .listen(3000);
 const endTime = Date.now(); // Start time tracking
