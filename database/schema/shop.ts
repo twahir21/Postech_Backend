@@ -102,6 +102,7 @@ import {
     priceBought: integer("price_bought").notNull(), // Cost price per unit
     totalCost: integer("total_cost").notNull(), // quantity * priceBought
     purchaseDate: timestamp("purchase_date").defaultNow(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
   });
 
   

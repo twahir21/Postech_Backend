@@ -4,7 +4,7 @@ import { getTranslation } from "./translation";
 import { sanitizeNumber, sanitizeString } from "./security/xss";
 import { mainDb } from "../database/schema/connections/mainDb";
 import { expenses, products, purchases, sales, supplierPriceHistory } from "../database/schema/shop";
-import { eq, ilike, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, sql } from "drizzle-orm";
 
 const startTime = Date.now();
 // implementing crud for products 
@@ -120,60 +120,92 @@ export const prodPost = async ({ body, headers, shopId, userId, supplierId, cate
 }
 
 
-export const prodGet = async ({userId, shopId, query, set, headers}: {userId: string, shopId: string, query: ProductQuery, set: { status: number }, headers: headTypes}) => {
-    const page = parseInt(query.page || '1');
-    const limit = parseInt(query.limit || '10');
-    const search = query.search || '';
-  
+export const prodGet = async ({
+    userId,
+    shopId,
+    query,
+    set,
+    headers,
+  }: {
+    userId: string;
+    shopId: string;
+    query: ProductQuery;
+    set: { status: number };
+    headers: headTypes;
+  }) => {
+    const page = parseInt(query.page || "1");
+    const limit = parseInt(query.limit || "10");
+    const search = query.search || "";
     const offset = (page - 1) * limit;
-
     const lang = headers["accept-language"]?.split(",")[0] || "sw";
   
-    // Build filter condition
-    const where = search
-      ? ilike(products.name, `%${search}%`)
-      : undefined;
-  try {
-    
-    // Get total count
-    const total = await mainDb
-    .select({ count: sql<number>`count(*)` }) // ✅ sql<number> for type hint
-    .from(products)
-      .where(where || undefined)
-      .then((rows) => Number(rows[0].count));
+    // Build product filter
+    const where = and(
+      eq(products.shopId, shopId),
+      search ? ilike(products.name, `%${search}%`) : undefined
+    );
   
-    // Get paginated products
-    const rows = await mainDb
-    .select({
-      id: products.id,
-      name: products.name,
-      categoryId: products.categoryId,
-      priceSold: products.priceSold,
-      stock: products.stock,
-      shopId: products.shopId,
-      supplierId: products.supplierId,
-      minStock: products.minStock,
-      status: products.status,
-      unit: products.unit,
-      createdAt: products.createdAt,
-      updatedAt: products.updatedAt,
-      isQRCode: products.isQRCode,
-      priceBought: purchases.priceBought, // 🎯 pulled via LEFT JOIN
-    })
-    .from(products)
-    .leftJoin(purchases, eq(products.id, purchases.productId)) // left join to preserve products even without purchases
-    .where(where)
-    .orderBy(products.createdAt)
-    .limit(limit)
-    .offset(offset);
+    try {
+      // Step 1: Create deduplicated subquery for latest purchase per product
+      const latestPurchase = mainDb
+        .select({
+          productId: purchases.productId,
+          priceBought: purchases.priceBought,
+          rowNumber: sql<number>`ROW_NUMBER() OVER (PARTITION BY ${purchases.productId} ORDER BY ${purchases.createdAt} DESC)`,
+        })
+        .from(purchases)
+        .where(eq(purchases.shopId, shopId))
+        .as("latestPurchase");
   
-    if (rows.length === 0) {
+      const latestOnly = mainDb
+        .select({
+          productId: latestPurchase.productId,
+          priceBought: latestPurchase.priceBought,
+        })
+        .from(latestPurchase)
+        .where(sql`row_number = 1`)
+        .as("latestOnly");
+  
+      // Step 2: Count total products
+      const total = await mainDb
+        .select({ count: sql<number>`count(*)` })
+        .from(products)
+        .where(where)
+        .then((rows) => Number(rows[0].count));
+  
+      // Step 3: Fetch paginated product list + latest priceBought via LEFT JOIN
+      const rows = await mainDb
+        .select({
+          id: products.id,
+          name: products.name,
+          categoryId: products.categoryId,
+          priceSold: products.priceSold,
+          stock: products.stock,
+          shopId: products.shopId,
+          supplierId: products.supplierId,
+          minStock: products.minStock,
+          status: products.status,
+          unit: products.unit,
+          createdAt: products.createdAt,
+          updatedAt: products.updatedAt,
+          isQRCode: products.isQRCode,
+          priceBought: latestOnly.priceBought, // ✅ Deduplicated result
+        })
+        .from(products)
+        .where(where)
+        .leftJoin(latestOnly, eq(products.id, latestOnly.productId))
+        .orderBy(products.createdAt)
+        .limit(limit)
+        .offset(offset);
+  
+      // Step 4: Return result
+      if (rows.length === 0) {
         set.status = 204;
         return { success: false, data: [], total };
-    }
+      }
   
-    set.status = 200;
-    return {
+      set.status = 200;
+      return {
         success: true,
         data: rows.map((row) => ({
           ...row,
@@ -182,20 +214,21 @@ export const prodGet = async ({userId, shopId, query, set, headers}: {userId: st
         })),
         total,
       };
-  } catch (error) {
-    if (error instanceof Error) {
+    } catch (error) {
+      if (error instanceof Error) {
         return {
-            messsage: error.message,
-            success: false
-        }
-    }else{
+          message: error.message,
+          success: false,
+        };
+      } else {
         return {
-            messsage: sanitizeString(await getTranslation(lang, "serverErr")),
-            success: false
-        }
+          message: sanitizeString(await getTranslation(lang, "serverErr")),
+          success: false,
+        };
+      }
     }
-  }
-}
+  };
+  
 
 
 export const prodDel = async ({userId, shopId, productId, headers}: {userId: string, shopId: string, productId: string, headers: headTypes}) => {
@@ -472,8 +505,6 @@ export const QrPost = async({ body, headers, userId, shopId }: { body: QrData, h
             success: true,
             message: "Manunuzi yamehifadhiwa kiukamilifu"
         }
-        break;
-
         default:
             console.log("Invalid Data!")
     }

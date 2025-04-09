@@ -36,6 +36,7 @@ const categoriesPlugin = new Elysia()
     })
 
     .get("/categories", async ({ jwt, cookie, headers}) => {
+        const { userId, shopId } = await extractId({ jwt, cookie});
         const lang: any = headers["accept-language"]?.split(",") || "sw";
         const token = cookie.auth_token?.value;
 
@@ -48,7 +49,7 @@ const categoriesPlugin = new Elysia()
             throw new Error("Unauthorized -  invalid token ")
         }
 
-        return await categGet({ headers })
+        return await categGet({ headers, shopId })
     })
 
     .put("/categories", async ({ jwt, cookie, headers, query, body}) => {

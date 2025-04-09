@@ -82,10 +82,13 @@ export const categPost = async ({ body, headers, shopId, userId }: { body : cate
 }
 
 // get request
-export const categGet = async ({headers} : {headers: headTypes}) => {
+export const categGet = async ({headers, shopId} : {headers: headTypes, shopId: string}) => {
     const lang = headers["accept-language"]?.split(",")[0] || "sw";
     try {
-        const allCateg = await mainDb.select().from(categories);
+        const allCateg = await mainDb
+                            .select()
+                            .from(categories)
+                            .where(eq(categories.shopId, shopId));
 
         if(allCateg.length === 0) {
             return {
