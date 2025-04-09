@@ -3,7 +3,7 @@ import Elysia from "elysia";
 import { extractId } from "../functions/security/jwtToken";
 import { getTranslation } from "../functions/translation";
 import type { CustomerTypes } from "../types/types";
-import { customerGet, customerPost } from "../functions/customerFunc";
+import { customerFetch, customerGet, customerPost } from "../functions/customerFunc";
 
 const JWT_SECRET = process.env.JWT_TOKEN || "something@#morecomplicated<>es>??><Ess5%";
 
@@ -27,6 +27,21 @@ export const CustomersPlugin = new Elysia()
         }
 
         return await customerGet({ userId, shopId, headers, query});
+    })
+    .get("/getCustomers", async ({ jwt, cookie, headers }) => {
+        const { userId, shopId } = await extractId({ jwt, cookie });
+        const lang: any = headers["accept-language"]?.split(",") || "sw";
+        const token = cookie.auth_token?.value;
+        if (!token) {
+            throw new Error(`${await getTranslation(lang, "noToken")}`)
+        }
+
+        const decoded = await jwt.verify(token)
+        if (!decoded) {
+            throw new Error("Unauthorized -  invalid token ");
+        }
+
+        return await customerFetch({ userId, shopId, headers});
     })
     .post("/customers", async ({ jwt, cookie, body, headers }) => {
         const { userId, shopId} = await extractId({ jwt, cookie});

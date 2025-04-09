@@ -61,6 +61,15 @@ export const loginPlugin = new Elysia()
             }
 
             const shopId = shop[0].shopId;
+            const isPaid = shop[0].isPaid;
+
+            // check if a shop is paid before generating a token
+            if (!isPaid) {
+                return {
+                  success: false,
+                  message: "Tafadhali, lipia account yako ili kupata huduma.",
+                };
+            }
 
             // Generate JWT with user and shop info
             const token = await jwt.sign({ 

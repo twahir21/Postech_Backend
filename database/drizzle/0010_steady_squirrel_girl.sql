@@ -1,0 +1,1 @@
+ALTER TABLE "shops" ADD COLUMN "is_paid" boolean DEFAULT false;

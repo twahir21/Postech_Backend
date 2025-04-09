@@ -133,3 +133,46 @@ return {
 
 
 }
+
+
+export const customerFetch = async ({ userId, shopId, headers }: {
+    userId: string;
+    shopId: string;
+    headers: headTypes;
+}) => {
+    const lang: any = headers["accept-language"]?.split(",") || "sw";
+
+    try {
+    const existingCustomer = await mainDb
+                                    .select()
+                                    .from(customers)
+                                    .where(eq(customers.shopId, shopId));
+
+    if (existingCustomer.length === 0) {
+        return {
+            success: false,
+            message: "Hakuna mteja aliyeingizwa",
+            data: [],
+        }
+    }
+
+return {
+    success: true,
+    data: existingCustomer
+}
+    } catch (error) {
+        if (error instanceof Error) {
+            return {
+                messsage: error.message,
+                success: false
+            }
+        }else{
+            return {
+                messsage: sanitizeString(await getTranslation(lang, "serverErr")),
+                success: false
+            }
+        }
+      }
+
+
+}

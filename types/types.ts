@@ -58,4 +58,5 @@ export interface QrData {
     priceSold: number;
     priceBought: number;
     supplierId: string;
+    customerId: string;
 }

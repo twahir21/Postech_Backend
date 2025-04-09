@@ -38,9 +38,11 @@ import {
   // Shop Users Table (Many-to-Many) multi-users 
   // -----------------
     export const shopUsers = pgTable("shop_users", {
+      id: uuid("id").defaultRandom().primaryKey(),
       shopId: uuid("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
       userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),      
       role: text("role").notNull().default("assistant"), // Role inside the shop
+      isPaid: boolean("is_paid").default(false),
   }, (table) => ({
       uniqueUserRole: uniqueIndex("unique_user_role").on(table.shopId, table.userId), // Unique per shop
   }));

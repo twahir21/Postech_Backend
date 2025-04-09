@@ -1,10 +1,10 @@
-import { z } from "zod"
+import { custom, z } from "zod"
 import type { headTypes, ProductQuery, productTypes, QrData } from "../types/types";
 import { getTranslation } from "./translation";
 import { sanitizeNumber, sanitizeString } from "./security/xss";
 import { mainDb } from "../database/schema/connections/mainDb";
-import { expenses, products, purchases, sales, supplierPriceHistory } from "../database/schema/shop";
-import { and, desc, eq, ilike, sql } from "drizzle-orm";
+import { debts, expenses, products, purchases, sales, supplierPriceHistory } from "../database/schema/shop";
+import { and, eq, ilike, sql } from "drizzle-orm";
 
 const startTime = Date.now();
 // implementing crud for products 
@@ -420,7 +420,9 @@ export const QrPost = async({ body, headers, userId, shopId }: { body: QrData, h
         productId: z.string().min(5, "Id haiwezi kuwa na herufi chini ya 5"),
         priceSold: z.number().min(3, "Bei haiwezi kuwa chini ya shilingi 3"),
         priceBought: z.number().min(3, "Bei haiwezi kuwa chini ya shilingi 3"),
-        supplierId: z.string().min(3, "Id haiwezi kuwa na herufi chini ya 3")
+        supplierId: z.string().min(3, "Id haiwezi kuwa na herufi chini ya 3"),
+        customerId: z.string().min(3, "Id haiwezi kuwa na herufi chini ya 3")
+        
 
     });
         
@@ -434,7 +436,7 @@ export const QrPost = async({ body, headers, userId, shopId }: { body: QrData, h
     }
 
 
-    let  { calculatedTotal, quantity, saleType, discount, description, typeDetected, productId, priceSold, priceBought, supplierId } : QrData = parsed.data;
+    let  { calculatedTotal, quantity, saleType, discount, description, typeDetected, productId, priceSold, priceBought, supplierId, customerId } : QrData = parsed.data;
 
     // sanitize or remove xss scripts if available
     saleType = sanitizeString(saleType);
@@ -447,73 +449,91 @@ export const QrPost = async({ body, headers, userId, shopId }: { body: QrData, h
     priceSold = sanitizeNumber(priceSold);
     priceBought = sanitizeNumber(priceBought);
     supplierId = sanitizeString(supplierId);
-
+    customerId = sanitizeString(customerId);
 
 
     // switch 
-    switch(typeDetected){
+    switch (typeDetected) {
         case 'expenses':
-            // save to expenses 
-            await mainDb.insert(expenses).values({
-                description,
-                amount: calculatedTotal,
-                shopId
-            });
-
-            return {
-                success: true,
-                message: "Matumizi yamehifadhiwa kikamilifu"
-            }
-
+          await mainDb.insert(expenses).values({
+            description,
+            amount: calculatedTotal,
+            shopId
+          });
+      
+          return {
+            success: true,
+            message: "Matumizi yamehifadhiwa kikamilifu"
+          };
+      
         case 'sales':
-            // check if sales or debt
-            if(saleType === "cash"){
-                // save to cash
-                await mainDb.insert(sales).values({
-                    productId,
-                    quantity,
-                    priceSold,
-                    totalSales: calculatedTotal,
-                    discount,
-                    shopId,
-                    saleType: "cash",
-                    customerId: null
-                });
-
-                return {
-                    success: true,
-                    message: "Mauzo yamehifadhiwa kiukamilifu"
-                }
-            }else{
-                // save to debts
-                console.log("Debt detected")
-            }
-        break;
-
+          // 1. Check stock availability first
+          const current = await mainDb
+            .select({ stock: products.stock })
+            .from(products)
+            .where(eq(products.id, productId))
+            .then(res => res[0]);
+      
+          if (!current || current.stock < quantity) {
+            return {
+              success: false,
+              message: "Bidhaa haina stock ya kutosha",
+            };
+          }
+      
+          // 2. Deduct stock
+          await mainDb.update(products)
+            .set({ stock: sql`${products.stock} - ${quantity}` })
+            .where(eq(products.id, productId));
+      
+          // 3. Insert based on saleType
+          if (saleType === "cash") {
+            await mainDb.insert(sales).values({
+              productId,
+              quantity,
+              priceSold,
+              totalSales: calculatedTotal,
+              discount,
+              shopId,
+              saleType: "cash",
+              customerId: null
+            });
+          } else {
+            await mainDb.insert(debts).values({
+              customerId,
+              totalAmount: calculatedTotal,
+              remainingAmount: calculatedTotal,
+              shopId,
+            });
+          }
+    
+      
+          return {
+            success: true,
+            message: "Mauzo yamehifadhiwa kiukamilifu"
+          };
+      
         case 'purchases':
-            // save to purchases
-            await mainDb.insert(purchases).values({
-                productId,
-                supplierId,
-                shopId,
-                quantity,
-                priceBought,
-                totalCost: calculatedTotal
-            })
-
-        return {
+          await mainDb.insert(purchases).values({
+            productId,
+            supplierId,
+            shopId,
+            quantity,
+            priceBought,
+            totalCost: calculatedTotal
+          });
+      
+          return {
             success: true,
             message: "Manunuzi yamehifadhiwa kiukamilifu"
-        }
+          };
+      
         default:
-            console.log("Invalid Data!")
-    }
-    
-
-    return {
-        success: true,
-        message: "Nice implementations"
-    }
+          return {
+            success: false,
+            message: "Aina ya muamala haijatambuliwa"
+          };
+    }      
 
     }catch(error){
 
