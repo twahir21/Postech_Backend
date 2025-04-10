@@ -1,1 +1,0 @@
-ALTER TABLE "customers" ADD CONSTRAINT "customers_name_unique" UNIQUE("name");

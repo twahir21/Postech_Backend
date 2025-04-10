@@ -1,6 +1,6 @@
 {
-  "id": "95aacb99-fae5-4208-b73e-18db1f85aa04",
-  "prevId": "ad0c7947-0865-4e49-b0e7-ca81270551e7",
+  "id": "d813a0a3-2144-4e21-8c86-5166304ee569",
+  "prevId": "976e6f6f-e634-44f0-9249-bbba4a00848f",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -47,10 +47,10 @@
         },
         "total_gross_profit": {
           "name": "total_gross_profit",
-          "type": "numeric",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "default": "'0'"
+          "default": 0
         }
       },
       "indexes": {},
@@ -282,6 +282,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
         }
       },
       "indexes": {},
@@ -302,6 +309,13 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
+        "customers_name_unique": {
+          "name": "customers_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        },
         "customers_contact_unique": {
           "name": "customers_contact_unique",
           "nullsNotDistinct": false,
@@ -339,7 +353,7 @@
         },
         "amount_paid": {
           "name": "amount_paid",
-          "type": "numeric",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
@@ -405,13 +419,13 @@
         },
         "total_amount": {
           "name": "total_amount",
-          "type": "numeric",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
         "remaining_amount": {
           "name": "remaining_amount",
-          "type": "numeric",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
@@ -476,7 +490,7 @@
         },
         "amount": {
           "name": "amount",
-          "type": "numeric",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
@@ -541,7 +555,7 @@
         },
         "price_sold": {
           "name": "price_sold",
-          "type": "numeric",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
@@ -595,6 +609,13 @@
           "primaryKey": false,
           "notNull": false,
           "default": "now()"
+        },
+        "is_qr_code": {
+          "name": "is_qr_code",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
         }
       },
       "indexes": {},
@@ -690,13 +711,13 @@
         },
         "price_bought": {
           "name": "price_bought",
-          "type": "numeric",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
         "total_cost": {
           "name": "total_cost",
-          "type": "numeric",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
@@ -705,6 +726,13 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
           "default": "now()"
         }
       },
@@ -859,22 +887,22 @@
         },
         "price_sold": {
           "name": "price_sold",
-          "type": "numeric",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
         "total_sales": {
           "name": "total_sales",
-          "type": "numeric",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
         "discount": {
           "name": "discount",
-          "type": "numeric",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "default": "'0'"
+          "default": 0
         },
         "shop_id": {
           "name": "shop_id",
@@ -942,6 +970,13 @@
       "name": "shop_users",
       "schema": "",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
         "shop_id": {
           "name": "shop_id",
           "type": "uuid",
@@ -960,6 +995,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'assistant'"
+        },
+        "is_paid": {
+          "name": "is_paid",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
         }
       },
       "indexes": {
@@ -1091,7 +1133,7 @@
         },
         "price": {
           "name": "price",
-          "type": "numeric",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
@@ -1272,6 +1314,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "phoneNumber": {
+          "name": "phoneNumber",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
         "role": {
           "name": "role",
           "type": "text",
@@ -1319,6 +1367,13 @@
           "nullsNotDistinct": false,
           "columns": [
             "email"
+          ]
+        },
+        "users_phoneNumber_unique": {
+          "name": "users_phoneNumber_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "phoneNumber"
           ]
         }
       },

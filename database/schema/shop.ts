@@ -18,6 +18,7 @@ import {
       username: text("username").notNull().unique(),
       email: text("email").unique().notNull(),
       password: text("password").notNull(),
+      phoneNumber: text("phoneNumber").unique().notNull(),
       role: text("role").notNull().default("owner"), // Default role is "owner"
       createdAt: timestamp("created_at").defaultNow(),
   }, (table) => ({
@@ -42,7 +43,7 @@ import {
       shopId: uuid("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
       userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),      
       role: text("role").notNull().default("assistant"), // Role inside the shop
-      isPaid: boolean("is_paid").default(false),
+      isPaid: boolean("is_paid").default(true),
   }, (table) => ({
       uniqueUserRole: uniqueIndex("unique_user_role").on(table.shopId, table.userId), // Unique per shop
   }));

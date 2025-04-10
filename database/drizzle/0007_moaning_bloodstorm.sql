@@ -1,1 +1,0 @@
-ALTER TABLE "sales" ALTER COLUMN "discount" SET DEFAULT 0;

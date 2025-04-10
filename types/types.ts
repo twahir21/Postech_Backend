@@ -4,6 +4,7 @@ export interface registerRequest {
     username?: string;
     password?: string;
     name?: string;
+    phoneNumber: string;
 }
 
 export interface productTypes {

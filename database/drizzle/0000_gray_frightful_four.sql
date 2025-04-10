@@ -5,7 +5,7 @@ CREATE TABLE "analytics" (
 	"lowest_stock_product" uuid,
 	"shop_id" uuid NOT NULL,
 	"most_buying_customer" uuid,
-	"total_gross_profit" numeric DEFAULT '0' NOT NULL
+	"total_gross_profit" integer DEFAULT 0 NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "asked_products" (
@@ -27,6 +27,8 @@ CREATE TABLE "customers" (
 	"name" text NOT NULL,
 	"shop_id" uuid NOT NULL,
 	"contact" text NOT NULL,
+	"created_at" timestamp DEFAULT now(),
+	CONSTRAINT "customers_name_unique" UNIQUE("name"),
 	CONSTRAINT "customers_contact_unique" UNIQUE("contact")
 );
 --> statement-breakpoint
@@ -34,15 +36,15 @@ CREATE TABLE "debt_payments" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"debt_id" uuid,
 	"shop_id" uuid NOT NULL,
-	"amount_paid" numeric NOT NULL,
+	"amount_paid" integer NOT NULL,
 	"payment_date" timestamp DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE "debts" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"customer_id" uuid NOT NULL,
-	"total_amount" numeric NOT NULL,
-	"remaining_amount" numeric NOT NULL,
+	"total_amount" integer NOT NULL,
+	"remaining_amount" integer NOT NULL,
 	"shop_id" uuid NOT NULL,
 	"last_payment_date" timestamp,
 	"created_at" timestamp DEFAULT now()
@@ -51,7 +53,7 @@ CREATE TABLE "debts" (
 CREATE TABLE "expenses" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"description" text NOT NULL,
-	"amount" numeric NOT NULL,
+	"amount" integer NOT NULL,
 	"shop_id" uuid NOT NULL,
 	"date" timestamp DEFAULT now()
 );
@@ -60,7 +62,7 @@ CREATE TABLE "products" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
 	"category_id" uuid,
-	"price_sold" numeric NOT NULL,
+	"price_sold" integer NOT NULL,
 	"stock" integer NOT NULL,
 	"shop_id" uuid NOT NULL,
 	"supplier_id" uuid NOT NULL,
@@ -69,6 +71,7 @@ CREATE TABLE "products" (
 	"unit" text,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
+	"is_qr_code" boolean DEFAULT false,
 	CONSTRAINT "products_name_unique" UNIQUE("name")
 );
 --> statement-breakpoint
@@ -78,9 +81,10 @@ CREATE TABLE "purchases" (
 	"supplier_id" uuid NOT NULL,
 	"shop_id" uuid NOT NULL,
 	"quantity" integer NOT NULL,
-	"price_bought" numeric NOT NULL,
-	"total_cost" numeric NOT NULL,
-	"purchase_date" timestamp DEFAULT now()
+	"price_bought" integer NOT NULL,
+	"total_cost" integer NOT NULL,
+	"purchase_date" timestamp DEFAULT now(),
+	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "returns" (
@@ -96,9 +100,9 @@ CREATE TABLE "sales" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"product_id" uuid NOT NULL,
 	"quantity" integer NOT NULL,
-	"price_sold" numeric NOT NULL,
-	"total_sales" numeric NOT NULL,
-	"discount" numeric DEFAULT '0' NOT NULL,
+	"price_sold" integer NOT NULL,
+	"total_sales" integer NOT NULL,
+	"discount" integer DEFAULT 0 NOT NULL,
 	"shop_id" uuid NOT NULL,
 	"sale_type" text DEFAULT 'cash' NOT NULL,
 	"customer_id" uuid,
@@ -106,9 +110,11 @@ CREATE TABLE "sales" (
 );
 --> statement-breakpoint
 CREATE TABLE "shop_users" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"shop_id" uuid NOT NULL,
 	"user_id" uuid NOT NULL,
-	"role" text DEFAULT 'assistant' NOT NULL
+	"role" text DEFAULT 'assistant' NOT NULL,
+	"is_paid" boolean DEFAULT false
 );
 --> statement-breakpoint
 CREATE TABLE "shops" (
@@ -123,7 +129,7 @@ CREATE TABLE "supplier_price_history" (
 	"supplier_id" uuid NOT NULL,
 	"product_id" uuid NOT NULL,
 	"shop_id" uuid NOT NULL,
-	"price" numeric NOT NULL,
+	"price" integer NOT NULL,
 	"date_added" timestamp DEFAULT now()
 );
 --> statement-breakpoint
@@ -172,7 +178,7 @@ ALTER TABLE "sales" ADD CONSTRAINT "sales_shop_id_shops_id_fk" FOREIGN KEY ("sho
 ALTER TABLE "shop_users" ADD CONSTRAINT "shop_users_shop_id_shops_id_fk" FOREIGN KEY ("shop_id") REFERENCES "public"."shops"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop_users" ADD CONSTRAINT "shop_users_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "supplier_price_history" ADD CONSTRAINT "supplier_price_history_supplier_id_suppliers_id_fk" FOREIGN KEY ("supplier_id") REFERENCES "public"."suppliers"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "supplier_price_history" ADD CONSTRAINT "supplier_price_history_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "supplier_price_history" ADD CONSTRAINT "supplier_price_history_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "supplier_price_history" ADD CONSTRAINT "supplier_price_history_shop_id_shops_id_fk" FOREIGN KEY ("shop_id") REFERENCES "public"."shops"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "suppliers" ADD CONSTRAINT "suppliers_shop_id_shops_id_fk" FOREIGN KEY ("shop_id") REFERENCES "public"."shops"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE UNIQUE INDEX "unique_category" ON "categories" USING btree ("name","shop_id");--> statement-breakpoint

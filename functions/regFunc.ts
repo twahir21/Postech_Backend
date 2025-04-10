@@ -17,6 +17,7 @@ export const regPost = async ({ body, headers }: { body: registerRequest; header
             username: z.string().min(3, await getTranslation(lang, "usernameErr")),
             email: z.string().email(),
             password: z.string().min(6, await getTranslation(lang, "passErr")),
+            phoneNumber: z.string().min(9 , "Namba haiwezi kuwa chini ya 5")
         });
 
         const parsed = schema.safeParse(body);
@@ -28,14 +29,14 @@ export const regPost = async ({ body, headers }: { body: registerRequest; header
             };
         }
 
-        let { name, username, email, password }: registerRequest = parsed.data;
+        let { name, username, email, password, phoneNumber }: registerRequest = parsed.data;
 
         // 🛡️ **Sanitize Inputs**
         name = sanitizeString(name.trim().toLowerCase());
         username = sanitizeString(username.trim().toLowerCase());
         email = sanitizeString(email.trim());
-        password = sanitizeString(password.trim())
-
+        password = sanitizeString(password.trim());
+        phoneNumber = sanitizeString(phoneNumber.trim());
         // Check if the email is already registered
         const existingUser = await mainDb.select().from(users).where(eq(users.email, email)).limit(1);
         if (existingUser.length > 0) {
@@ -63,6 +64,7 @@ export const regPost = async ({ body, headers }: { body: registerRequest; header
                 username,
                 email,
                 password: hashedPassword,
+                phoneNumber
             })
             .returning({ id: users.id }) // Ensure ID is returned correctly
             .then(res => res[0]); // Extract first row
