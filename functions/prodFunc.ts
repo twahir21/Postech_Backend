@@ -453,87 +453,92 @@ export const QrPost = async({ body, headers, userId, shopId }: { body: QrData, h
 
 
     // switch 
-    switch (typeDetected) {
-        case 'expenses':
-          await mainDb.insert(expenses).values({
-            description,
-            amount: calculatedTotal,
-            shopId
-          });
+    // switch (typeDetected) {
+    //     case 'expenses':
+    //       await mainDb.insert(expenses).values({
+    //         description,
+    //         amount: calculatedTotal,
+    //         shopId
+    //       });
       
-          return {
-            success: true,
-            message: "Matumizi yamehifadhiwa kikamilifu"
-          };
+    //       return {
+    //         success: true,
+    //         message: "Matumizi yamehifadhiwa kikamilifu"
+    //       };
       
-        case 'sales':
-          // 1. Check stock availability first
-          const current = await mainDb
-            .select({ stock: products.stock })
-            .from(products)
-            .where(eq(products.id, productId))
-            .then(res => res[0]);
+    //     case 'sales':
+    //       // 1. Check stock availability first
+    //       const current = await mainDb
+    //         .select({ stock: products.stock })
+    //         .from(products)
+    //         .where(eq(products.id, productId))
+    //         .then(res => res[0]);
       
-          if (!current || current.stock < quantity) {
-            return {
-              success: false,
-              message: "Bidhaa haina stock ya kutosha",
-            };
-          }
+    //       if (!current || current.stock < quantity) {
+    //         return {
+    //           success: false,
+    //           message: "Bidhaa haina stock ya kutosha",
+    //         };
+    //       }
       
-          // 2. Deduct stock
-          await mainDb.update(products)
-            .set({ stock: sql`${products.stock} - ${quantity}` })
-            .where(eq(products.id, productId));
+    //       // 2. Deduct stock
+    //       await mainDb.update(products)
+    //         .set({ stock: sql`${products.stock} - ${quantity}` })
+    //         .where(eq(products.id, productId));
       
-          // 3. Insert based on saleType
-          if (saleType === "cash") {
-            await mainDb.insert(sales).values({
-              productId,
-              quantity,
-              priceSold,
-              totalSales: calculatedTotal,
-              discount,
-              shopId,
-              saleType: "cash",
-              customerId: null
-            });
-          } else {
-            await mainDb.insert(debts).values({
-              customerId,
-              totalAmount: calculatedTotal,
-              remainingAmount: calculatedTotal,
-              shopId,
-            });
-          }
+    //       // 3. Insert based on saleType
+    //       if (saleType === "cash") {
+    //         await mainDb.insert(sales).values({
+    //           productId,
+    //           quantity,
+    //           priceSold,
+    //           totalSales: calculatedTotal,
+    //           discount,
+    //           shopId,
+    //           saleType: "cash",
+    //           customerId: null
+    //         });
+    //       } else {
+    //         await mainDb.insert(debts).values({
+    //           customerId,
+    //           totalAmount: calculatedTotal,
+    //           remainingAmount: calculatedTotal,
+    //           shopId,
+    //         });
+    //       }
     
       
-          return {
-            success: true,
-            message: "Mauzo yamehifadhiwa kiukamilifu"
-          };
+    //       return {
+    //         success: true,
+    //         message: "Mauzo yamehifadhiwa kiukamilifu"
+    //       };
       
-        case 'purchases':
-          await mainDb.insert(purchases).values({
-            productId,
-            supplierId,
-            shopId,
-            quantity,
-            priceBought,
-            totalCost: calculatedTotal
-          });
+    //     case 'purchases':
+    //       await mainDb.insert(purchases).values({
+    //         productId,
+    //         supplierId,
+    //         shopId,
+    //         quantity,
+    //         priceBought,
+    //         totalCost: calculatedTotal
+    //       });
       
-          return {
-            success: true,
-            message: "Manunuzi yamehifadhiwa kiukamilifu"
-          };
+    //       return {
+    //         success: true,
+    //         message: "Manunuzi yamehifadhiwa kiukamilifu"
+    //       };
       
-        default:
-          return {
-            success: false,
-            message: "Aina ya muamala haijatambuliwa"
-          };
-    }      
+    //     default:
+    //       return {
+    //         success: false,
+    //         message: "Aina ya muamala haijatambuliwa"
+    //       };
+    // } 
+    
+    return {
+      success: true,
+      message: "Nice Implementations"
+    }
 
     }catch(error){
 

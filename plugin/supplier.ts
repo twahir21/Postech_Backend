@@ -26,7 +26,7 @@ const suppPlugin = new Elysia()
                 throw new Error("Unauthorized -  invalid token ")
             }
 
-            return suppGet ({ headers })
+            return suppGet ({ headers, shopId, userId })
         })
     .post("/suppliers", async ({ jwt, cookie, headers, body}) => {
         const { userId, shopId } = await extractId({ jwt, cookie });

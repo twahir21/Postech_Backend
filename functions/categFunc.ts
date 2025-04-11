@@ -93,7 +93,8 @@ export const categGet = async ({headers, shopId} : {headers: headTypes, shopId: 
         if(allCateg.length === 0) {
             return {
                 success: false,
-                message: sanitizeString(await getTranslation(lang, "notFound"))
+                message: sanitizeString(await getTranslation(lang, "notFound")),
+                data: []
             }
         }
 

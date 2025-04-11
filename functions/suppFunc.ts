@@ -78,15 +78,19 @@ export const suppPost = async ({ body, headers, shopId}: { body : suppTypes, hea
 }
 
 // get request
-export const suppGet = async ({headers} : {headers: headTypes}) => {
+export const suppGet = async ({headers, shopId, userId} : {headers: headTypes; shopId: string; userId: string}) => {
     const lang = headers["accept-language"]?.split(",")[0] || "sw";
     try {
-        const allSupp = await mainDb.select().from(suppliers);
+        const allSupp = await mainDb
+                            .select()
+                            .from(suppliers)
+                            .where(eq(suppliers.shopId, shopId));
 
         if(allSupp.length === 0) {
             return {
                 success: false,
-                message: await getTranslation(lang, "notFound")
+                message: await getTranslation(lang, "notFound"),
+                data: []
             }
         }
 
