@@ -77,8 +77,15 @@ const analyticsRoute = new Elysia()
     const totalProfitFromProducts = profitPerProduct.reduce((sum, item) => {
       return sum + Number(item.profit || 0);
     }, 0);
-    
-    
+
+    const totalSalesFromProducts = profitPerProduct.reduce((sum, item) => {
+      return sum + Number(item.totalsales || 0);
+    }, 0);
+
+    const totalPurchasesFromProducts = profitPerProduct.reduce((sum, item) => {
+      return sum + Number(item.totalcost || 0);
+    }, 0);
+        
     const expenseResult = await mainDb.execute(sql`
       SELECT COALESCE(SUM(e.amount), 0) AS totalExpenses
       FROM expenses e
@@ -89,6 +96,8 @@ const analyticsRoute = new Elysia()
     
     const netProfit = {
       totalExpenses,
+      totalSales: totalSalesFromProducts,
+      totalPurchases: totalPurchasesFromProducts,
       netProfit: totalProfitFromProducts - totalExpenses
     };
     
