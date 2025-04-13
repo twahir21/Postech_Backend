@@ -1,11 +1,13 @@
 // routes/profits.ts
 import { Elysia } from 'elysia';
-import { eq, and, sql, lte, asc } from 'drizzle-orm';
+import { eq, and, sql, lte, asc, desc } from 'drizzle-orm';
 import jwt from '@elysiajs/jwt';
 import { extractId } from '../functions/security/jwtToken';
 import { getTranslation } from '../functions/translation';
 import { mainDb } from '../database/schema/connections/mainDb';
-import { products } from '../database/schema/shop';
+import { customers, debts, products } from '../database/schema/shop';
+import { formatDistanceToNow } from "date-fns";
+
 
 const JWT_SECRET = process.env.JWT_TOKEN || "something@#morecomplicated<>es>??><Ess5%";
 
@@ -73,6 +75,8 @@ const analyticsRoute = new Elysia()
     `);
     
     const profitPerProduct = result || []; // ✅ Proper array
+    const highestProfitProduct = profitPerProduct[0] || null;
+
     
     const totalProfitFromProducts = profitPerProduct.reduce((sum, item) => {
       return sum + Number(item.profit || 0);
@@ -114,13 +118,104 @@ const analyticsRoute = new Elysia()
   .orderBy(asc(products.stock))
   .limit(1);
 
+  const lowStockProducts = await mainDb
+  .select()
+  .from(products)
+  .where(and(
+    eq(products.shopId, shopId),
+    lte(products.stock, products.minStock)
+  ))
+  .orderBy(asc(products.stock)); // Optional: order from lowest to highest
+
+  const mostFrequentSales = await mainDb.execute(sql`
+    SELECT 
+      p.id AS productId,
+      p.name AS productName,
+      COUNT(s.id) AS timesSold
+    FROM sales s
+    INNER JOIN products p ON s.product_id = p.id
+    WHERE s.shop_id = ${shopId}
+    GROUP BY p.id, p.name
+    ORDER BY timesSold DESC
+    LIMIT 1
+  `);
+
+  const mostSoldByQuantity = await mainDb.execute(sql`
+    SELECT 
+      p.id AS productId,
+      p.name AS productName,
+      SUM(s.quantity) AS totalQuantitySold
+    FROM sales s
+    INNER JOIN products p ON s.product_id = p.id
+    WHERE s.shop_id = ${shopId}
+    GROUP BY p.id, p.name
+    ORDER BY totalQuantitySold DESC
+    LIMIT 1
+  `);
+
+  const [longTermDebtUser] = await mainDb
+  .select({
+    debtId: debts.id,
+    customerId: debts.customerId,
+    remainingAmount: debts.remainingAmount,
+    createdAt: debts.createdAt,
+    name: customers.name, // optional: get customer name
+  })
+  .from(debts)
+  .where(eq(debts.shopId, shopId))
+  .innerJoin(customers, eq(customers.id, debts.customerId))
+  .orderBy(asc(debts.createdAt)) // oldest first
+  .limit(1); // ⏳ Longest unpaid debt
+
+  let daysSinceDebt = "Haijulikani"; // Default fallback
+
+  if (longTermDebtUser?.createdAt) {
+    const rawDate = new Date(longTermDebtUser.createdAt);
+    
+    // Safely adjust for UTC-3
+    rawDate.setHours(rawDate.getHours() - 3); // For East Africa
+  
+    daysSinceDebt = formatDistanceToNow(rawDate, {
+      addSuffix: true,
+    });
+  }
+  
+
+
+
+const [mostDebtUser] = await mainDb
+  .select({
+    debtId: debts.id,
+    customerId: debts.customerId,
+    remainingAmount: debts.remainingAmount,
+    createdAt: debts.createdAt,
+    name: customers.name,
+  })
+  .from(debts)
+  .where(eq(debts.shopId, shopId))
+  .innerJoin(customers, eq(customers.id, debts.customerId))
+  .orderBy(desc(debts.remainingAmount)) // 💰 Highest remaining debt first
+  .limit(1);
+
+
+  
+  
+
 
   return {
     success: true,
     profitPerProduct,
+    highestProfitProduct,
     netProfit,
-    lowestProduct
+    lowestProduct,
+    lowStockProducts,
+    mostSoldProductByQuantity: mostSoldByQuantity?.[0] || null,
+    mostFrequentProduct: mostFrequentSales?.[0] || null,
+    longTermDebtUser: longTermDebtUser || null,
+    mostDebtUser: mostDebtUser || null,
+    daysSinceDebt
   };
+
   } catch (error) {
     if (error instanceof Error) {
       console.error('🔥 /analytics error:', error);

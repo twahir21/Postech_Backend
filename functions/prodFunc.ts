@@ -481,8 +481,16 @@ export const QrPost = async({ body, headers, userId, shopId }: { body: QrData, h
         await mainDb.update(products)
           .set({ stock: sql`${products.stock} - ${quantity}` })
           .where(eq(products.id, productId));
-    
-        // 3. Insert sale or debt
+
+        // 3. Check updated stock and optionally update status
+        const newStock = current.stock - quantity;
+        if (newStock <= 0) {
+          await mainDb.update(products)
+            .set({ status: "finished" }) // or "not available"
+            .where(eq(products.id, productId));
+        }
+
+        // 4. Insert sale or debt
         if (saleType === "cash") {
           await mainDb.insert(sales).values({
             productId,
