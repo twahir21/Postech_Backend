@@ -22,6 +22,13 @@
       "when": 1744255594746,
       "tag": "0002_brown_tombstone",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1744443011386,
+      "tag": "0003_clear_joseph",
+      "breakpoints": true
     }
   ]
 }

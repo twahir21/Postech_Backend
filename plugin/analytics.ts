@@ -17,7 +17,8 @@ const analyticsRoute = new Elysia()
   }))
 
   .get('/analytics', async ({ jwt, cookie, headers }) => {
-    const { userId, shopId } = await extractId({ jwt, cookie });
+  try {
+        const { userId, shopId } = await extractId({ jwt, cookie });
     const lang: any = headers["accept-language"]?.split(",") || "sw";
 
     const token = cookie.auth_token?.value;
@@ -38,40 +39,58 @@ const analyticsRoute = new Elysia()
     }
 
     // 🔹 Profit Per Product
-    const profitPerProduct = await mainDb.execute(sql`
+    const result = await mainDb.execute(sql`
       SELECT 
         p.id as productId,
         p.name as productName,
-        COALESCE(SUM(s.quantity * s.price_sold), 0) AS totalSales,
-        COALESCE(SUM(pur.quantity * pur.price_bought), 0) AS totalCost,
-        COALESCE(SUM(s.quantity * s.price_sold), 0) - COALESCE(SUM(pur.quantity * pur.price_bought), 0) AS profit
+        
+        COALESCE(s.totalSales, 0) AS totalSales,
+        COALESCE(pur.totalCost, 0) AS totalCost,
+        COALESCE(s.totalSales, 0) - COALESCE(pur.totalCost, 0) AS profit
+    
       FROM products p
-      LEFT JOIN sales s ON s.product_id = p.id AND s.shop_id = ${shopId}
-      LEFT JOIN purchases pur ON pur.product_id = p.id AND pur.shop_id = ${shopId}
+    
+      LEFT JOIN (
+        SELECT 
+          s.product_id, 
+          SUM(s.quantity * s.price_sold) AS totalSales
+        FROM sales s
+        WHERE s.shop_id = ${shopId}
+        GROUP BY s.product_id
+      ) s ON s.product_id = p.id
+    
+      LEFT JOIN (
+        SELECT 
+          pur.product_id, 
+          SUM(pur.quantity * pur.price_bought) AS totalCost
+        FROM purchases pur
+        WHERE pur.shop_id = ${shopId}
+        GROUP BY pur.product_id
+      ) pur ON pur.product_id = p.id
+    
       WHERE p.shop_id = ${shopId}
-      GROUP BY p.id, p.name
       ORDER BY profit DESC
     `);
-
-    // 🔹 Net Profit Summary
-    const netProfitResult = await mainDb.execute(sql`
-      SELECT 
-        (SELECT COALESCE(SUM(s.quantity * s.price_sold), 0) FROM sales s WHERE s.shop_id = ${shopId}) AS totalSales,
-        (SELECT COALESCE(SUM(p.quantity * p.price_bought), 0) FROM purchases p WHERE p.shop_id = ${shopId}) AS totalPurchases,
-        (SELECT COALESCE(SUM(e.amount), 0) FROM expenses e WHERE e.shop_id = ${shopId}) AS totalExpenses
-    `);
-
     
-
-    const net = netProfitResult[0];
+    const profitPerProduct = result || []; // ✅ Proper array
+    
+    const totalProfitFromProducts = profitPerProduct.reduce((sum, item) => {
+      return sum + Number(item.profit || 0);
+    }, 0);
+    
+    
+    const expenseResult = await mainDb.execute(sql`
+      SELECT COALESCE(SUM(e.amount), 0) AS totalExpenses
+      FROM expenses e
+      WHERE e.shop_id = ${shopId}
+    `);
+    const totalExpenses = Number(expenseResult?.[0]?.totalExpenses || 0);
+    
     const netProfit = {
-      totalSales: Number(net.totalSales),
-      totalPurchases: Number(net.totalPurchases),
-      totalExpenses: Number(net.totalExpenses),
-      netProfit: Number(net.totalSales) - Number(net.totalPurchases) - Number(net.totalExpenses)
+      totalExpenses,
+      netProfit: totalProfitFromProducts - totalExpenses
     };
-
-
+    
 
 
   // lowest stock product
@@ -92,6 +111,20 @@ const analyticsRoute = new Elysia()
     netProfit,
     lowestProduct
   };
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error('🔥 /analytics error:', error);
+      return {
+        success: false,
+        message: error.message || 'Unexpected error',
+      };
+    }else{
+      return {
+        success: false,
+        message: "Analytics problems"
+      }
+    }
+  }
 
 });
 

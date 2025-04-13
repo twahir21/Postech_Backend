@@ -106,7 +106,9 @@ import {
     totalCost: integer("total_cost").notNull(), // quantity * priceBought
     purchaseDate: timestamp("purchase_date").defaultNow(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
-  });
+  }, (table) => ({
+    idxProductShop: index("idx_purchases_product_shop").on(table.productId, table.shopId)
+  }));
 
   
   // ------------------------------
@@ -130,7 +132,7 @@ import {
   // -----------------
   export const sales = pgTable("sales", {
     id: uuid("id").defaultRandom().primaryKey(),
-    productId: uuid("product_id").notNull().references(() => products.id, {onDelete: "set null"}),
+    productId: uuid("product_id").notNull().references(() => products.id, {onDelete: "cascade"}),
     quantity: integer("quantity").notNull(),
     priceSold: integer("price_sold").notNull(), // this is mandatory for calculating total price
     // total_price and net_price can be computed on the fly in queries
@@ -140,7 +142,9 @@ import {
     saleType: text("sale_type").notNull().default("cash"),
     customerId: uuid("customer_id"), // Nullable for cash sales
     createdAt: timestamp("created_at").defaultNow().notNull(),
-  });
+  },  (table) => ({
+    idxProductShop: index("idx_sales_product_shop").on(table.productId, table.shopId)
+  }));
   
   // -----------------
   // Debts Table
