@@ -84,7 +84,8 @@ const analyticsRoute = new Elysia()
       FROM expenses e
       WHERE e.shop_id = ${shopId}
     `);
-    const totalExpenses = Number(expenseResult?.[0]?.totalExpenses || 0);
+
+    const totalExpenses = Number(expenseResult?.[0]?.totalexpenses || 0);
     
     const netProfit = {
       totalExpenses,
