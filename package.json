@@ -5,7 +5,9 @@
   "scripts": {
     "start": "bun --watch index.ts",
     "dev": "bun run index.ts",
-    "minify": "bun build index.ts --outdir=build --minify"
+    "clean": "rm -rf build",
+    "drizzle": "bun drizzle-kit studio",
+    "build": "bun run clean && bun build index.ts --outdir build --target bun --minify --sourcemap"
   },
   "devDependencies": {
     "@types/bun": "^1.2.5",
