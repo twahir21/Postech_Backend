@@ -3,7 +3,7 @@ import { mainDb } from "../database/schema/connections/mainDb";
 import type { CustomerTypes, headTypes, ProductQuery } from "../types/types";
 import { sanitizeString } from "./security/xss";
 import { customers } from "../database/schema/shop";
-import { eq, ilike, sql } from "drizzle-orm";
+import { and, eq, ilike, sql } from "drizzle-orm";
 import { getTranslation } from "./translation";
 
 export const customerPost = async ({ body, userId, shopId, headers}: {
@@ -82,9 +82,11 @@ export const customerGet = async ({ userId, shopId, headers, query}: {
 
     
     // Build filter condition
-    const where = search
-        ? ilike(customers.name, `%${search}%`)
-        : undefined;
+    const where = and(
+        eq(customers.shopId, shopId),
+        search ? ilike(customers.name, `%${search}%`) : undefined
+      );
+      
 
     try {
     // Get total count
@@ -104,19 +106,24 @@ export const customerGet = async ({ userId, shopId, headers, query}: {
     .offset(offset);
 
 
-if (existingCustomer.length === 0) {
-    return {
-        success: false,
-        message: "Hakuna mteja aliyeingizwa",
-        data: [],
-        total
+    if (existingCustomer.length === 0) {
+        return {
+            success: false,
+            message: "Hakuna mteja aliyeingizwa",
+            data: [],
+            total
+        }
     }
-}
-
+    
 return {
     success: true,
-    data: existingCustomer
-}
+    data: existingCustomer,
+    total,
+    page,
+    limit,
+    pages: Math.ceil(total / limit)
+  }
+  
     } catch (error) {
         if (error instanceof Error) {
             return {
@@ -133,7 +140,6 @@ return {
 
 
 }
-
 
 export const customerFetch = async ({ userId, shopId, headers }: {
     userId: string;
@@ -175,4 +181,121 @@ return {
       }
 
 
+}
+
+
+export const CustomerDel = async ({ userId, shopId, customerId, headers }: { userId: string, shopId: string, customerId: string, headers: headTypes }) => {
+    const lang = headers["accept-language"]?.split(",")[0] || "sw";
+    try{
+        // check if product exists
+        const customer = await mainDb
+        .select()
+        .from(customers)
+        .where(eq(customers.id, customerId))
+        .then((rows) => rows[0]);
+    
+        if (!customer) {
+            return {
+                success: false,
+                message: "Hakuna bidhaa kwa jina hili"
+            }
+        }
+    
+        // delete product
+        await mainDb.delete(customers).where(eq(customers.id, customerId));
+    
+        return {
+            success: true,
+            message: "Mteja ameondolewa kwa mafanikio"
+        }
+    }catch(error){
+        if (error instanceof Error) {
+            return {
+                messsage: error.message,
+                success: false
+            }
+        }else{
+            return {
+                messsage: sanitizeString(await getTranslation(lang, "serverErr")),
+                success: false
+            }
+        }
+    }
+}
+
+
+export const customerUpdate = async ({userId, shopId, customerId, body, headers}: {userId: string, shopId: string, customerId: string, body: CustomerTypes, headers: headTypes}) => {
+    const lang = headers["accept-language"]?.split(",")[0] || "sw";
+    try{
+
+    // Validate product data
+    const schema = z.object({
+        name: z.string().min(2, "Jina haliwezi kuwa na herufi chini ya mbili"),
+        contact: z.string().min(2, "Mawasiliano hayawezi kuwa na herufi chini ya mbili"),
+    });
+    
+        const parsed = schema.safeParse(body);
+    
+        if (!parsed.success) {
+            return {
+                success: false,
+                message: parsed.error.format()
+            }
+        }
+
+
+
+        let  { name, contact } : CustomerTypes = parsed.data;
+
+
+        // sanitize or remove xss scripts if available
+        name = sanitizeString(name);
+        contact = sanitizeString(contact);
+
+
+
+        // check if product exists
+        const customer = await mainDb
+        .select()
+        .from(customers)
+        .where(eq(customers.id, customerId))
+        .then((rows) => rows[0]);
+    
+        if (!customer) {
+            return {
+                success: false,
+                message: "Hakuna mteja kwa jina hili"
+            }
+        }
+
+        // update customer
+        const updatedCustomers = await mainDb.update(customers).set({
+            name,
+            contact      
+        }).where(eq(customers.id, customerId));
+
+        if (updatedCustomers.length === 0) {
+            throw new Error("Imeshindwa ku-update taarifa za mteja");
+        }
+
+    
+        return {
+            success: true,
+            data: updatedCustomers,
+            message: await getTranslation(lang, "success")
+        }
+
+    }catch(error){
+        if (error instanceof Error) {
+            return {
+                messsage: error.message,
+                success: false
+            }
+        }else{
+            return {
+                messsage: sanitizeString(await getTranslation(lang, "serverErr")),
+                success: false
+            }
+        }
+    }
 }

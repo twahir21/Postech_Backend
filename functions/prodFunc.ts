@@ -4,7 +4,7 @@ import { getTranslation } from "./translation";
 import { sanitizeNumber, sanitizeString } from "./security/xss";
 import { mainDb } from "../database/schema/connections/mainDb";
 import { debts, expenses, products, purchases, sales, supplierPriceHistory } from "../database/schema/shop";
-import { and, eq, ilike, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, sql } from "drizzle-orm";
 
 const startTime = Date.now();
 // implementing crud for products 
@@ -194,7 +194,7 @@ export const prodGet = async ({
         .from(products)
         .where(where)
         .leftJoin(latestOnly, eq(products.id, latestOnly.productId))
-        .orderBy(products.createdAt)
+        .orderBy(desc(products.createdAt))
         .limit(limit)
         .offset(offset);
   

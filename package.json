@@ -6,7 +6,7 @@
     "start": "bun --watch index.ts",
     "dev": "bun run index.ts",
     "clean": "rm -rf build",
-    "drizzle": "bun drizzle-kit studio",
+    "orm": "bun drizzle-kit studio",
     "build": "bun run clean && bun build index.ts --outdir build --target bun --minify --sourcemap"
   },
   "devDependencies": {
@@ -31,6 +31,7 @@
     "adm-zip": "^0.5.16",
     "argon2": "^0.41.1",
     "axios": "^1.8.4",
+    "dayjs": "^1.11.13",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.40.1",
     "elysia": "^1.2.25",

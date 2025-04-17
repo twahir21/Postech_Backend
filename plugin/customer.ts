@@ -3,7 +3,7 @@ import Elysia from "elysia";
 import { extractId } from "../functions/security/jwtToken";
 import { getTranslation } from "../functions/translation";
 import type { CustomerTypes } from "../types/types";
-import { customerFetch, customerGet, customerPost } from "../functions/customerFunc";
+import { CustomerDel, customerFetch, customerGet, customerPost, customerUpdate } from "../functions/customerFunc";
 
 const JWT_SECRET = process.env.JWT_TOKEN || "something@#morecomplicated<>es>??><Ess5%";
 
@@ -67,7 +67,7 @@ export const CustomersPlugin = new Elysia()
             headers,
         }); 
     })
-    .delete("/products/:id", async ({ jwt, cookie, set, params, headers }) => {
+    .delete("/customers/:id", async ({ jwt, cookie, set, params, headers }) => {
         const { userId, shopId } = await extractId({ jwt, cookie });
         const lang: any = headers["accept-language"]?.split(",") || "sw";
         const token = cookie.auth_token?.value;
@@ -80,16 +80,16 @@ export const CustomersPlugin = new Elysia()
             throw new Error("Unauthorized -  invalid token ")
         }
 
-        const productId = params.id;
-        if (!productId) {
+        const customerId = params.id;
+        if (!customerId) {
             set.status = 400;
             return { success: false, message: "Product ID is required." };
         }
 
         // Logic to delete the product by ID
-        return await prodDel({ userId, shopId, headers, productId });
+        return await CustomerDel({ userId, shopId, headers, customerId });
     })
-    .put("/products/:id", async ({ jwt, cookie, set, params, body, headers }) => {
+    .put("/customers/:id", async ({ jwt, cookie, set, params, body, headers }) => {
         const { userId, shopId } = await extractId({ jwt, cookie });
         const lang: any = headers["accept-language"]?.split(",") || "sw";
         const token = cookie.auth_token?.value;
@@ -102,17 +102,17 @@ export const CustomersPlugin = new Elysia()
             throw new Error("Unauthorized -  invalid token ")
         }
 
-        const productId = params.id;
-        if (!productId) {
+        const customerId = params.id;
+        if (!customerId) {
             set.status = 400;
             return { success: false, message: "Product ID is required." };
         }
 
-        return await prodUpdate({
-            body: body as productTypes,
+        return await customerUpdate({
+            body: body as CustomerTypes,
             userId,
             shopId,
             headers,
-            productId,
+            customerId,
         });
     })

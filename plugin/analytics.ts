@@ -5,7 +5,7 @@ import jwt from '@elysiajs/jwt';
 import { extractId } from '../functions/security/jwtToken';
 import { getTranslation } from '../functions/translation';
 import { mainDb } from '../database/schema/connections/mainDb';
-import { customers, debts, products } from '../database/schema/shop';
+import { customers, debts, expenses, products, sales } from '../database/schema/shop';
 import { formatDistanceToNow } from "date-fns";
 
 
@@ -199,7 +199,32 @@ const [mostDebtUser] = await mainDb
 
 
   
-  
+  // sales in a week 
+// Get 7-day window
+const sevenDaysAgo = new Date();
+sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+
+// --- Get total sales per day ---
+const salesByDay = await mainDb
+  .select({
+    day: sql`TO_CHAR(${sales.createdAt}, 'Dy')`.as("day"), // returns Mon, Tue...
+    sales: sql`SUM(${sales.totalSales})`.as("sales"),
+  })
+  .from(sales)
+  .where(sql`${sales.createdAt} >= ${sevenDaysAgo.toISOString()} AND ${sales.shopId} = ${shopId}`)
+  .groupBy(sql`TO_CHAR(${sales.createdAt}, 'Dy')`)
+  .orderBy(sql`TO_CHAR(${sales.createdAt}, 'Dy')`);
+
+// --- Get total expenses per day ---
+const expensesByDay = await mainDb
+  .select({
+    day: sql`TO_CHAR(${expenses.date}, 'Dy')`.as("day"),
+    expenses: sql`SUM(${expenses.amount})`.as("expenses"),
+  })
+  .from(expenses)
+  .where(sql`${expenses.date} >= ${sevenDaysAgo.toISOString()} AND ${expenses.shopId} = ${shopId}`)
+  .groupBy(sql`TO_CHAR(${expenses.date}, 'Dy')`)
+  .orderBy(sql`TO_CHAR(${expenses.date}, 'Dy')`);
 
 
   return {
@@ -213,7 +238,9 @@ const [mostDebtUser] = await mainDb
     mostFrequentProduct: mostFrequentSales?.[0] || null,
     longTermDebtUser: longTermDebtUser || null,
     mostDebtUser: mostDebtUser || null,
-    daysSinceDebt
+    daysSinceDebt,
+    salesByDay,
+    expensesByDay
   };
 
   } catch (error) {
