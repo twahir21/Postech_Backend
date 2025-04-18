@@ -2,10 +2,10 @@
 
 import { z } from "zod"
 import { getTranslation } from "./translation"
-import type { headTypes, suppTypes } from "../types/types";
+import type { headTypes, ProductQuery, suppTypes } from "../types/types";
 import { mainDb } from "../database/schema/connections/mainDb";
 import { suppliers } from "../database/schema/shop";
-import { eq } from "drizzle-orm";
+import { and, eq, ilike, sql } from "drizzle-orm";
 import { sanitizeString } from "./security/xss";
 
 // post 
@@ -78,26 +78,54 @@ export const suppPost = async ({ body, headers, shopId}: { body : suppTypes, hea
 }
 
 // get request
-export const suppGet = async ({headers, shopId, userId} : {headers: headTypes; shopId: string; userId: string}) => {
+export const suppGet = async ({headers, shopId, userId, query} : {headers: headTypes; shopId: string; userId: string, query: ProductQuery}) => {
     const lang = headers["accept-language"]?.split(",")[0] || "sw";
     try {
-        const allSupp = await mainDb
-                            .select()
-                            .from(suppliers)
-                            .where(eq(suppliers.shopId, shopId));
+        const page = parseInt(query.page || '1');
+        const limit = parseInt(query.limit || '10');
+        const search = query.search || '';
+        
+        const offset = (page - 1) * limit;
 
-        if(allSupp.length === 0) {
+        // Build filter condition
+        const where = and(
+            eq(suppliers.shopId, shopId),
+            search ? ilike(suppliers.company, `%${search}%`) : undefined
+            );
+
+        // Get total count
+        const total = await mainDb
+        .select({ count: sql<number>`count(*)` }) // ✅ sql<number> for type hint
+        .from(suppliers)
+            .where(where || undefined)
+            .then((rows) => Number(rows[0].count));
+        
+        // check if the supplier already exists
+        const existingSuppliers = await mainDb
+        .select()
+        .from(suppliers)
+        .where(where)
+        .orderBy(suppliers.createdAt)
+        .limit(limit)
+        .offset(offset);
+
+        if(existingSuppliers.length === 0) {
             return {
                 success: false,
                 message: await getTranslation(lang, "notFound"),
-                data: []
+                data: [],
+                total
             }
         }
 
         return {
             success: true,
             message: await getTranslation(lang, "success"),
-            data: allSupp
+            data: existingSuppliers,
+            total,
+            page,
+            limit,
+            pages: Math.ceil(total / limit)
         }
     } catch (error) {
         if(error instanceof Error) {

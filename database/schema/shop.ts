@@ -72,6 +72,7 @@ import {
     shopId: uuid("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
     mostSoldProduct: uuid("most_sold_product"), // FK to products.id (optional)
     highestProfitProduct: uuid("highest_profit_product"), // FK to products.id (optional)
+    createdAt: timestamp("created_at").defaultNow(),
   });
 
   // -----------------

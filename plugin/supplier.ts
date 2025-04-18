@@ -13,7 +13,7 @@ const suppPlugin = new Elysia()
         name: 'jwt',
         secret: JWT_SECRET
     }))
-    .get("/suppliers", async ({ jwt, cookie, headers}) => {
+    .get("/suppliers", async ({ jwt, cookie, headers, query}) => {
             const { userId, shopId } = await extractId({ jwt, cookie });
             const lang: any = headers["accept-language"]?.split(",") || "sw";
             const token = cookie.auth_token?.value;
@@ -26,7 +26,7 @@ const suppPlugin = new Elysia()
                 throw new Error("Unauthorized -  invalid token ")
             }
 
-            return suppGet ({ headers, shopId, userId })
+            return suppGet ({ headers, shopId, userId, query });
         })
     .post("/suppliers", async ({ jwt, cookie, headers, body}) => {
         const { userId, shopId } = await extractId({ jwt, cookie });
@@ -44,7 +44,7 @@ const suppPlugin = new Elysia()
         return suppPost ({ shopId, body: body as suppTypes, headers })
     })
 
-    .put("/suppliers", async ({ jwt, cookie, headers, query, body}) => {
+    .put("/suppliers/:id", async ({ jwt, cookie, headers, params, body}) => {
         const { userId, shopId } = await extractId({ jwt, cookie });
         const lang: any = headers["accept-language"]?.split(",") || "sw";
         const token = cookie.auth_token?.value;
@@ -57,13 +57,15 @@ const suppPlugin = new Elysia()
             throw new Error("Unauthorized -  invalid token ")
         }
 
-        const { supplierId } = query;
-
+        const supplierId = params.id;
+        if (!supplierId) {
+            return { success: false, message: "Product ID is required." };
+        }
         return suppPut({ body: body as suppTypes, headers, supplierId})
     })
 
 
-    .delete("/suppliers", async ({ jwt, cookie, headers, query}) => {
+    .delete("/suppliers/:id", async ({ jwt, cookie, headers, params}) => {
         const { userId, shopId } = await extractId({ jwt, cookie });
         const lang: any = headers["accept-language"]?.split(",") || "sw";
         const token = cookie.auth_token?.value;
@@ -76,7 +78,10 @@ const suppPlugin = new Elysia()
             throw new Error("Unauthorized -  invalid token ")
         }
 
-        const { supplierId } = query;
+        const supplierId = params.id;
+        if (!supplierId) {
+            return { success: false, message: "Product ID is required." };
+        }
 
         return suppDel ({ supplierId, headers });
     })
