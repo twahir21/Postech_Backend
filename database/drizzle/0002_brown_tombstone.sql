@@ -1,1 +1,0 @@
-ALTER TABLE "shop_users" ALTER COLUMN "is_paid" SET DEFAULT true;

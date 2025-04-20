@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1744218951454,
-      "tag": "0000_gray_frightful_four",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1744254617349,
-      "tag": "0001_chief_wolfpack",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1744255594746,
-      "tag": "0002_brown_tombstone",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1744443011386,
-      "tag": "0003_clear_joseph",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1745004931065,
-      "tag": "0004_lumpy_siren",
+      "when": 1745161715761,
+      "tag": "0000_known_xorn",
       "breakpoints": true
     }
   ]

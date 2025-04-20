@@ -56,7 +56,8 @@ export const customerPost = async ({ body, userId, shopId, headers}: {
             name,
             contact,
             shopId,
-        });
+        })
+        .returning();
     const data = insertCustomers[0];
 
     return {
@@ -274,9 +275,6 @@ export const customerUpdate = async ({userId, shopId, customerId, body, headers}
             contact      
         }).where(eq(customers.id, customerId));
 
-        if (updatedCustomers.length === 0) {
-            throw new Error("Imeshindwa ku-update taarifa za mteja");
-        }
 
     
         return {

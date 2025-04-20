@@ -114,7 +114,7 @@ CREATE TABLE "shop_users" (
 	"shop_id" uuid NOT NULL,
 	"user_id" uuid NOT NULL,
 	"role" text DEFAULT 'assistant' NOT NULL,
-	"is_paid" boolean DEFAULT false
+	"is_paid" boolean DEFAULT true
 );
 --> statement-breakpoint
 CREATE TABLE "shops" (
@@ -139,7 +139,8 @@ CREATE TABLE "suppliers" (
 	"contact" text NOT NULL,
 	"shop_id" uuid NOT NULL,
 	"most_sold_product" uuid,
-	"highest_profit_product" uuid
+	"highest_profit_product" uuid,
+	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
@@ -147,10 +148,12 @@ CREATE TABLE "users" (
 	"username" text NOT NULL,
 	"email" text NOT NULL,
 	"password" text NOT NULL,
+	"phoneNumber" text NOT NULL,
 	"role" text DEFAULT 'owner' NOT NULL,
 	"created_at" timestamp DEFAULT now(),
 	CONSTRAINT "users_username_unique" UNIQUE("username"),
-	CONSTRAINT "users_email_unique" UNIQUE("email")
+	CONSTRAINT "users_email_unique" UNIQUE("email"),
+	CONSTRAINT "users_phoneNumber_unique" UNIQUE("phoneNumber")
 );
 --> statement-breakpoint
 ALTER TABLE "analytics" ADD CONSTRAINT "analytics_most_sold_product_products_id_fk" FOREIGN KEY ("most_sold_product") REFERENCES "public"."products"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -173,7 +176,7 @@ ALTER TABLE "purchases" ADD CONSTRAINT "purchases_supplier_id_suppliers_id_fk" F
 ALTER TABLE "purchases" ADD CONSTRAINT "purchases_shop_id_shops_id_fk" FOREIGN KEY ("shop_id") REFERENCES "public"."shops"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "returns" ADD CONSTRAINT "returns_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "returns" ADD CONSTRAINT "returns_shop_id_shops_id_fk" FOREIGN KEY ("shop_id") REFERENCES "public"."shops"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "sales" ADD CONSTRAINT "sales_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "sales" ADD CONSTRAINT "sales_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "sales" ADD CONSTRAINT "sales_shop_id_shops_id_fk" FOREIGN KEY ("shop_id") REFERENCES "public"."shops"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop_users" ADD CONSTRAINT "shop_users_shop_id_shops_id_fk" FOREIGN KEY ("shop_id") REFERENCES "public"."shops"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shop_users" ADD CONSTRAINT "shop_users_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -182,6 +185,8 @@ ALTER TABLE "supplier_price_history" ADD CONSTRAINT "supplier_price_history_prod
 ALTER TABLE "supplier_price_history" ADD CONSTRAINT "supplier_price_history_shop_id_shops_id_fk" FOREIGN KEY ("shop_id") REFERENCES "public"."shops"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "suppliers" ADD CONSTRAINT "suppliers_shop_id_shops_id_fk" FOREIGN KEY ("shop_id") REFERENCES "public"."shops"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE UNIQUE INDEX "unique_category" ON "categories" USING btree ("name","shop_id");--> statement-breakpoint
+CREATE INDEX "idx_purchases_product_shop" ON "purchases" USING btree ("product_id","shop_id");--> statement-breakpoint
+CREATE INDEX "idx_sales_product_shop" ON "sales" USING btree ("product_id","shop_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "unique_user_role" ON "shop_users" USING btree ("shop_id","user_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "unique_supplier_product" ON "supplier_price_history" USING btree ("supplier_id","product_id","shop_id");--> statement-breakpoint
 CREATE INDEX "idx_email" ON "users" USING btree ("email");

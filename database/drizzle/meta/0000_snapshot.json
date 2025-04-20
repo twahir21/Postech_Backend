@@ -1,5 +1,5 @@
 {
-  "id": "976e6f6f-e634-44f0-9249-bbba4a00848f",
+  "id": "0ffc0507-6db4-44ad-8227-938a8a377ecd",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -736,7 +736,29 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_purchases_product_shop": {
+          "name": "idx_purchases_product_shop",
+          "columns": [
+            {
+              "expression": "product_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "shop_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "purchases_product_id_products_id_fk": {
           "name": "purchases_product_id_products_id_fk",
@@ -931,7 +953,29 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_sales_product_shop": {
+          "name": "idx_sales_product_shop",
+          "columns": [
+            {
+              "expression": "product_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "shop_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "sales_product_id_products_id_fk": {
           "name": "sales_product_id_products_id_fk",
@@ -943,7 +987,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "set null",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "sales_shop_id_shops_id_fk": {
@@ -1001,7 +1045,7 @@
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
-          "default": false
+          "default": true
         }
       },
       "indexes": {
@@ -1261,6 +1305,13 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
         }
       },
       "indexes": {},
@@ -1314,6 +1365,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "phoneNumber": {
+          "name": "phoneNumber",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
         "role": {
           "name": "role",
           "type": "text",
@@ -1361,6 +1418,13 @@
           "nullsNotDistinct": false,
           "columns": [
             "email"
+          ]
+        },
+        "users_phoneNumber_unique": {
+          "name": "users_phoneNumber_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "phoneNumber"
           ]
         }
       },
