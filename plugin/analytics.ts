@@ -5,8 +5,10 @@ import jwt from '@elysiajs/jwt';
 import { extractId } from '../functions/security/jwtToken';
 import { getTranslation } from '../functions/translation';
 import { mainDb } from '../database/schema/connections/mainDb';
-import { customers, debts, expenses, products, sales } from '../database/schema/shop';
+import { customers, debts, expenses, products, sales, shops, users } from '../database/schema/shop';
 import { formatDistanceToNow } from "date-fns";
+import { z } from 'zod';
+import { sanitizeString } from '../functions/security/xss';
 
 
 const JWT_SECRET = process.env.JWT_TOKEN || "something@#morecomplicated<>es>??><Ess5%";
@@ -258,6 +260,178 @@ const expensesByDay = await mainDb
     }
   }
 
-});
+  })
+
+  .get('/sales', async ({ jwt, cookie, headers }) => {
+    try {
+      const { userId, shopId } = await extractId({ jwt, cookie });
+      const lang: any = headers["accept-language"]?.split(",") || "sw";
+  
+      const token = cookie.auth_token?.value;
+      if (!token) {
+          throw new Error(`${await getTranslation(lang, "noToken")}`)
+      }
+  
+      const decoded = await jwt.verify(token)
+      if (!decoded) {
+          throw new Error("Unauthorized -  invalid token ");
+      }
+  
+      if (!shopId) {
+        return {
+          success: false,
+          message: "Shop ID is required"
+        };
+      }
+
+      // get the concept of sales needed data
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('🔥 /Sales error:', error);
+        return {
+          success: false,
+          message: error.message || 'Unexpected error',
+        };
+      }else{
+        return {
+          success: false,
+          message: "Analytics problems"
+        }
+      }
+    }
+  })
+
+  .get("/shop", async ({ jwt, cookie, headers }) => {
+    try {
+      const { userId, shopId } = await extractId({ jwt, cookie });
+      const lang: any = headers["accept-language"]?.split(",") || "sw";
+  
+      const token = cookie.auth_token?.value;
+      if (!token) {
+          throw new Error(`${await getTranslation(lang, "noToken")}`)
+      }
+  
+      const decoded = await jwt.verify(token)
+      if (!decoded) {
+          throw new Error("Unauthorized -  invalid token ");
+      }
+  
+      if (!shopId) {
+        return {
+          success: false,
+          message: "Shop ID is required"
+        };
+      }
+
+      // get the concept of shop needed data
+      const fetchShop = await mainDb.select({ shopName: shops.name }).from(shops).where(eq(shops.id, shopId));
+      const fetchEmail = await mainDb.select({ email: users.email }).from(users).where(eq(users.id, userId));
+
+
+      if (fetchShop.length === 0 || fetchEmail.length === 0) {
+        return {
+          success: false,
+          message: "Hakuna kilichopatikana"
+        }
+      }
+
+      return {
+        success: true,
+        shopName: fetchShop[0],
+        email: fetchEmail[0]
+      }
+
+
+
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('🔥 /Shop error:', error);
+        return {
+          success: false,
+          message: error.message || 'Unexpected error',
+        };
+      }else{
+        return {
+          success: false,
+          message: "Analytics problems"
+        }
+      }
+    }
+  })
+
+  .put("/shop", async ({ jwt, cookie, headers, body }) => {
+    try {
+      const { userId, shopId } = await extractId({ jwt, cookie });
+      const lang: any = headers["accept-language"]?.split(",") || "sw";
+  
+      const token = cookie.auth_token?.value;
+      if (!token) {
+          throw new Error(`${await getTranslation(lang, "noToken")}`)
+      }
+  
+      const decoded = await jwt.verify(token)
+      if (!decoded) {
+          throw new Error("Unauthorized -  invalid token ");
+      }
+  
+      if (!shopId) {
+        return {
+          success: false,
+          message: "Shop ID is required"
+        };
+      }
+
+      // get the concept of shop needed data
+      const schema = z.object({
+        email: z.string().email(),
+        shopName: z.string().min(3, "Hakuna jina chini ya herufi tatu")
+      });
+
+      interface shopTypes {
+        email?: string;
+        shopName?: string;
+      }
+
+      const safeParse = schema.safeParse(body);
+
+      if (!safeParse.success) {
+        return {
+          success: false,
+          message: safeParse.error.format()
+        }
+      }
+
+      let { email, shopName } = safeParse.data as shopTypes;
+
+      email = sanitizeString(email);
+      shopName = sanitizeString(shopName);
+
+      console.log(email, shopName);
+
+      // give the logic of saving to database
+      await mainDb.update(users).set({
+        email
+      }).where(eq(users.id, userId));
+
+      await mainDb.update(shops).set({
+        name: shopName
+      }).where(eq(shops.id, shopId));
+
+
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('🔥 /Shop error:', error);
+        return {
+          success: false,
+          message: error.message || 'Unexpected error',
+        };
+      }else{
+        return {
+          success: false,
+          message: "Analytics problems"
+        }
+      }
+    }
+  })
 
 export default analyticsRoute;
