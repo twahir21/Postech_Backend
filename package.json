@@ -7,7 +7,7 @@
     "dev": "bun run index.ts",
     "clean": "rm -rf build",
     "orm": "bun drizzle-kit studio",
-    "builder": "bun run clean && bun build index.ts --outdir build --target bun --minify --sourcemap"
+    "builder": "bun install && bun run clean && bun build index.ts --outdir build --target bun --minify --sourcemap"
   },
   "devDependencies": {
     "@types/bun": "^1.2.5",
