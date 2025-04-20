@@ -88,8 +88,8 @@ export const loginPlugin = new Elysia()
             cookie.auth_token.set({
                 value: token,
                 httpOnly: true, // prevents JavaScript from stealing the cookie (if stealed user get authenticated)
-                secure: process.env.NODE_ENV === 'production', // Only send over HTTPS in production
-                sameSite: 'strict', // CSRF protection
+                secure: true, // Only send over HTTPS in production
+                sameSite: 'none', // CSRF protection
                 maxAge: 7 * 86400,  // 7 days
                 path: '/',
             });
