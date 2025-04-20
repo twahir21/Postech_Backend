@@ -30,7 +30,7 @@ new Elysia()
     // Proper CORS handling
     .use(
         cors({
-            origin: ["http://localhost:5173", 'http://127.0.0.1:5500'], // Allow only frontend origin
+            origin: ["https://www.mypostech.store", "https://qwik.mypostech.store"], // Allow only frontend origin
             allowedHeaders: ["Content-Type", "Authorization", "Accept-Language"],
             credentials: true, // Allow cookies
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow specific methods
@@ -76,7 +76,7 @@ console.log(`Server Execution Time: ${endTime - startTime}ms`);
 
 
 
-console.log("Server is running in the link http://localhost:3000")
+console.log("Server is running in the link https://api.mypostech.store0")
 
 
 
