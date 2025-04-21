@@ -44,8 +44,6 @@ new Elysia()
         set.headers["X-Frame-Options"] = "DENY";
         set.headers["X-Content-Type-Options"] = "nosniff";
 
-        set.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload";
-
     })
 
     // Handle CORS for preflight requests (OPTIONS method)

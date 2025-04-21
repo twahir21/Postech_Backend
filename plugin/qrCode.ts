@@ -117,7 +117,7 @@ const qrCodePlugin = new Elysia()
           },
         };
 
-        const url = new URL("http://localhost:5173/scan-qrcode");
+        const url = new URL("https://qwik.mypostech.store/scan-qrcode");
 
         Object.keys(prodData.product).forEach((key) => {
           const value = prodData.product[key as keyof typeof prodData.product];
