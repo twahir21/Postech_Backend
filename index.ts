@@ -43,11 +43,14 @@ new Elysia()
         set.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'";
         set.headers["X-Frame-Options"] = "DENY";
         set.headers["X-Content-Type-Options"] = "nosniff";
+
+        set.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload";
+
     })
 
     // Handle CORS for preflight requests (OPTIONS method)
     .options("/*", ({ set }) => {
-        set.headers["Access-Control-Allow-Origin"] = "http://localhost:5173";
+        set.headers["Access-Control-Allow-Origin"] = "https://qwik.mypostech.store";
         set.headers["Access-Control-Allow-Credentials"] = "true";
         set.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS";
         set.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization";
@@ -76,7 +79,7 @@ console.log(`Server Execution Time: ${endTime - startTime}ms`);
 
 
 
-console.log("Server is running in the link https://api.mypostech.store0")
+console.log("Server is running in the link https://api.mypostech.store")
 
 
 
