@@ -92,6 +92,7 @@ export const loginPlugin = new Elysia()
                 sameSite: 'none', // CSRF protection
                 maxAge: 7 * 86400,  // 7 days
                 path: '/',
+                domain: ".mypostech.store"
             });
 
             return {
