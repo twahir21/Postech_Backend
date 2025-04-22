@@ -18,6 +18,7 @@ import cookie from "@elysiajs/cookie";
 import { CustomersPlugin } from "./plugin/customer";
 import analyticsRoute from "./plugin/analytics";
 import { authPlugin } from "./plugin/authPlugin";
+import { csrfProtection } from "./plugin/CSRF";
 
 const startTime = Date.now(); // Start time tracking
 
@@ -55,6 +56,9 @@ new Elysia()
         set.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization";
         return new Response(null, { status: 204 }); // 204 No Content for preflight
     })
+    
+    // 💥 Add it here (before plugins that handle POST/PUT/etc.)
+    .use(csrfProtection)
     .onRequest(rateLimitMiddleware)
 
     .use(homePlugin)
