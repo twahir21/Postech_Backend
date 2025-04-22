@@ -8,7 +8,7 @@ export const authPlugin = new Elysia()
     .use(cookie())
     .use(jwt({ name: 'jwt', secret: JWT_SECRET }))
     .get('/validate-session', async ({ jwt, cookie }) => {
-        const authToken = cookie.auth_token;
+        const authToken = cookie.auth_token?.value;
 
         if (!authToken) {
             return { success: false, message: 'No token provided' };
