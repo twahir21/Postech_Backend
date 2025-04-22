@@ -202,39 +202,96 @@ const [mostDebtUser] = await mainDb
 
   
   // sales in a week 
-// Get 7-day window
-const sevenDaysAgo = new Date();
-sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - 6); // Last 7 days
+  
+  // --- SALES ---
+  const salesResult = await mainDb.execute(
+    sql`
+      SELECT 
+        TO_CHAR(created_at, 'Dy') AS day, 
+        SUM(total_sales) AS sales
+      FROM sales
+      WHERE shop_id = ${shopId} AND created_at >= ${startDate.toISOString()}
+      GROUP BY day
+      ORDER BY MIN(created_at)
+    `
+  );
+  
+  // --- EXPENSES ---
+  const expensesResult = await mainDb.execute(
+    sql`
+      SELECT 
+        TO_CHAR(date, 'Dy') AS day, 
+        SUM(amount) AS expenses
+      FROM expenses
+      WHERE shop_id = ${shopId} AND date >= ${startDate.toISOString()}
+      GROUP BY day
+      ORDER BY MIN(date)
+    `
+  );
+  
+  // --- PURCHASES ---
+  const purchasesResult = await mainDb.execute(
+    sql`
+      SELECT 
+        TO_CHAR(created_at, 'Dy') AS day, 
+        SUM(quantity * price_bought) AS purchases
+      FROM purchases
+      WHERE shop_id = ${shopId} AND created_at >= ${startDate.toISOString()}
+      GROUP BY day
+      ORDER BY MIN(created_at)
+    `
+  );
+  
+  // Create a map to align days and avoid missing entries
+  const daysMap = new Map<string, { sales: number, expenses: number, purchases: number }>();
+  
+  // Helper to init day entry if not exists
+  function ensureDay(day: string) {
+    if (!daysMap.has(day)) {
+      daysMap.set(day, { sales: 0, expenses: 0, purchases: 0 });
+    }
+  }
+  
+  // Process sales
+  type Weekday = 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat' | 'Sun';
 
-// --- Get total sales per day ---
-const salesByDay = await mainDb.execute(
-  sql`
-    SELECT 
-      TO_CHAR(s.created_at, 'Dy') AS day, 
-      SUM(s.total_sales) AS sales
-    FROM sales s
-    WHERE s.created_at >= ${sevenDaysAgo.toISOString()}
-      AND s.shop_id = ${shopId}
-    GROUP BY day
-    ORDER BY MIN(s.created_at)
-  `
-);
-
-
-// --- Get total expenses per day ---
-const expensesByDay = await mainDb.execute(
-  sql`
-    SELECT 
-      TO_CHAR(e.date, 'Dy') AS day, 
-      SUM(e.amount) AS expenses
-    FROM expenses e
-    WHERE e.date >= ${sevenDaysAgo.toISOString()}
-      AND e.shop_id = ${shopId}
-    GROUP BY day
-    ORDER BY MIN(e.date)
-  `
-);
-
+  for (const row of salesResult.rows) {
+    const day = row.day as Weekday;
+    ensureDay(day);
+    daysMap.get(day)!.sales = Number(row.sales || 0);
+  }
+  
+  // Process expenses
+  for (const row of expensesResult.rows) {
+    const day = row.day as Weekday;
+    ensureDay(day);
+    daysMap.get(day)!.expenses = Number(row.expenses || 0);
+  }
+  
+  // Process purchases
+  for (const row of purchasesResult.rows) {
+    const day = row.day as Weekday;
+    ensureDay(day);
+    daysMap.get(day)!.purchases = Number(row.purchases || 0);
+  }
+  
+  // Final Output
+  const rawSalesByDay = [];
+  const expensesByDay = [];
+  const purchasesPerDay = [];
+  const salesByDay = [];
+  
+  for (const [day, data] of daysMap.entries()) {
+    rawSalesByDay.push({ day, sales: data.sales });
+    expensesByDay.push({ day, expenses: data.expenses });
+    purchasesPerDay.push({ day, purchases: data.purchases });
+  
+    const netSales = data.sales - data.expenses - data.purchases;
+    salesByDay.push({ day, netSales });
+  }
+  
 
   return {
     success: true,
@@ -249,7 +306,9 @@ const expensesByDay = await mainDb.execute(
     mostDebtUser: mostDebtUser || null,
     daysSinceDebt,
     salesByDay,
-    expensesByDay
+    expensesByDay,
+    rawSalesByDay,
+    purchasesPerDay
   };
 
   } catch (error) {
@@ -440,6 +499,18 @@ const expensesByDay = await mainDb.execute(
         }
       }
     }
+  })
+
+  .get('/fetch-password', ({}) => {
+
+  })
+
+  .put("/update-password", ({}) => {
+
+  })
+
+  .delete("/delete-shop", ({}) => {
+
   })
 
 export default analyticsRoute;
