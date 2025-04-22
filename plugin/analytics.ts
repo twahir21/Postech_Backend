@@ -207,26 +207,33 @@ const sevenDaysAgo = new Date();
 sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
 
 // --- Get total sales per day ---
-const salesByDay = await mainDb
-  .select({
-    day: sql`TO_CHAR(${sales.createdAt}, 'Dy')`.as("day"), // returns Mon, Tue...
-    sales: sql`SUM(${sales.totalSales})`.as("sales"),
-  })
-  .from(sales)
-  .where(sql`${sales.createdAt} >= ${sevenDaysAgo.toISOString()} AND ${sales.shopId} = ${shopId}`)
-  .groupBy(sql`TO_CHAR(${sales.createdAt}, 'Dy')`)
-  .orderBy(sql`TO_CHAR(${sales.createdAt}, 'Dy')`);
+const salesByDay = await mainDb.execute(
+  sql`
+    SELECT 
+      TO_CHAR(s.created_at, 'Dy') AS day, 
+      SUM(s.total_sales) AS sales
+    FROM sales s
+    WHERE s.created_at >= ${sevenDaysAgo.toISOString()}
+      AND s.shop_id = ${shopId}
+    GROUP BY day
+    ORDER BY MIN(s.created_at)
+  `
+);
+
 
 // --- Get total expenses per day ---
-const expensesByDay = await mainDb
-  .select({
-    day: sql`TO_CHAR(${expenses.date}, 'Dy')`.as("day"),
-    expenses: sql`SUM(${expenses.amount})`.as("expenses"),
-  })
-  .from(expenses)
-  .where(sql`${expenses.date} >= ${sevenDaysAgo.toISOString()} AND ${expenses.shopId} = ${shopId}`)
-  .groupBy(sql`TO_CHAR(${expenses.date}, 'Dy')`)
-  .orderBy(sql`TO_CHAR(${expenses.date}, 'Dy')`);
+const expensesByDay = await mainDb.execute(
+  sql`
+    SELECT 
+      TO_CHAR(e.date, 'Dy') AS day, 
+      SUM(e.amount) AS expenses
+    FROM expenses e
+    WHERE e.date >= ${sevenDaysAgo.toISOString()}
+      AND e.shop_id = ${shopId}
+    GROUP BY day
+    ORDER BY MIN(e.date)
+  `
+);
 
 
   return {
