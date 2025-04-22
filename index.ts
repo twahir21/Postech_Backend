@@ -56,7 +56,7 @@ new Elysia()
         set.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization";
         return new Response(null, { status: 204 }); // 204 No Content for preflight
     })
-    
+
     // 💥 Add it here (before plugins that handle POST/PUT/etc.)
     .use(csrfProtection)
     .onRequest(rateLimitMiddleware)
@@ -143,6 +143,19 @@ Cache Size: Memory Used: ${(memoryUsage.heapUsed / 1024 / 1024).toFixed(2)} MB
 // Start Memory Logging (Every 1 hour)
 setInterval(logMemoryUsage, 39600000);
 
+const logMemoryUsageRender = () => {
+    const memoryUsage = process.memoryUsage();
+    const heapUsedMB = memoryUsage.heapUsed / 1024 / 1024;
 
+    const logMessage = `📝 Memory: ${heapUsedMB.toFixed(2)} MB @ ${new Date().toISOString()}`;
+
+    if (heapUsedMB > 300) {
+        console.warn(`⚠️ HIGH memory usage: ${heapUsedMB.toFixed(2)} MB`);
+    }
+
+    console.log(logMessage); // View this in Render Logs tab
+};
+
+setInterval(logMemoryUsageRender, 39600000)
 
 // ✅ Make sure this is at the end of your server file
