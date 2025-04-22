@@ -278,18 +278,18 @@ const [mostDebtUser] = await mainDb
   }
   
   // Final Output
-  const rawSalesByDay = [];
+  const salesByDay = [];
   const expensesByDay = [];
   const purchasesPerDay = [];
-  const salesByDay = [];
+  const netSalesByDay = [];
   
   for (const [day, data] of daysMap.entries()) {
-    rawSalesByDay.push({ day, sales: data.sales });
+    salesByDay.push({ day, sales: data.sales });
     expensesByDay.push({ day, expenses: data.expenses });
     purchasesPerDay.push({ day, purchases: data.purchases });
   
     const netSales = data.sales - data.expenses - data.purchases;
-    salesByDay.push({ day, netSales });
+    netSalesByDay.push({ day, netSales });
   }
   
 
@@ -307,7 +307,7 @@ const [mostDebtUser] = await mainDb
     daysSinceDebt,
     salesByDay,
     expensesByDay,
-    rawSalesByDay,
+    netSalesByDay,
     purchasesPerDay
   };
 
