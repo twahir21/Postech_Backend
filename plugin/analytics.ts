@@ -2,13 +2,14 @@
 import { Elysia } from 'elysia';
 import { eq, and, sql, lte, asc, desc } from 'drizzle-orm';
 import jwt from '@elysiajs/jwt';
-import { extractId } from '../functions/security/jwtToken';
+import deleteAuthTokenCookie, { extractId } from '../functions/security/jwtToken';
 import { getTranslation } from '../functions/translation';
 import { mainDb } from '../database/schema/connections/mainDb';
-import { customers, debts, expenses, products, sales, shops, users } from '../database/schema/shop';
+import { askedProducts, categories, customers, debtPayments, debts, expenses, products, purchases, returns, sales, shops, shopUsers, supplierPriceHistory, suppliers, users } from '../database/schema/shop';
 import { formatDistanceToNow } from "date-fns";
 import { z } from 'zod';
 import { sanitizeString } from '../functions/security/xss';
+import { hashPassword, verifyPassword } from '../functions/security/hash';
 
 
 const JWT_SECRET = process.env.JWT_TOKEN || "something@#morecomplicated<>es>??><Ess5%";
@@ -477,11 +478,11 @@ const [mostDebtUser] = await mainDb
       // give the logic of saving to database
       await mainDb.update(users).set({
         email
-      }).where(eq(users.id, userId));
+      }).where(eq(users.id, userId)).returning();
 
       await mainDb.update(shops).set({
         name: shopName
-      }).where(eq(shops.id, shopId));
+      }).where(eq(shops.id, shopId)).returning();
 
 
     } catch (error) {
@@ -500,46 +501,7 @@ const [mostDebtUser] = await mainDb
     }
   })
 
-  .get('/fetch-password', async ({ jwt, cookie, headers }) => {
-        try {
-      const { userId, shopId } = await extractId({ jwt, cookie });
-      const lang: any = headers["accept-language"]?.split(",") || "sw";
-  
-      const token = cookie.auth_token?.value;
-      if (!token) {
-          throw new Error(`${await getTranslation(lang, "noToken")}`)
-      }
-  
-      const decoded = await jwt.verify(token)
-      if (!decoded) {
-          throw new Error("Unauthorized -  invalid token ");
-      }
-  
-      if (!shopId) {
-        return {
-          success: false,
-          message: "Shop ID is required"
-        };
-      }
-
-      // get the concept of fetching password
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error('🔥 /Sales error:', error);
-        return {
-          success: false,
-          message: error.message || 'Unexpected error',
-        };
-      }else{
-        return {
-          success: false,
-          message: "Analytics problems"
-        }
-      }
-    }
-  })
-
-  .put("/update-password", async ({ jwt, cookie, headers }) => {
+  .put("/update-password", async ({ jwt, cookie, headers, body }) => {
         try {
       const { userId, shopId } = await extractId({ jwt, cookie });
       const lang: any = headers["accept-language"]?.split(",") || "sw";
@@ -562,9 +524,64 @@ const [mostDebtUser] = await mainDb
       }
 
       // get the concept of updating password
+      const schema = z.object({
+        currentPassword: z.string().min(6, "Nenosiri haliwezi kuwa na herufi chini ya 6"),
+        newPassword: z.string().min(6, "Nenosiri haliwezi kuwa na herufi chini ya 6"),
+      });
+
+      const safeData = schema.safeParse(body);
+
+      if (!safeData.success){
+        return {
+          success: false,
+          message: safeData.error.format()
+        }
+      }
+
+      interface pswdType {
+        currentPassword?: string;
+        newPassword?: string;
+      }
+
+      let { currentPassword, newPassword } = safeData.data as pswdType;
+
+      // sanitize
+      currentPassword = sanitizeString(currentPassword);
+      newPassword = sanitizeString(newPassword);
+
+      const res = await mainDb.select({ pswd: users.password }).from(users).where(eq(users.id, userId));
+
+      const fetchedPswd = res[0].pswd;
+
+      const isVerified = await verifyPassword(fetchedPswd, currentPassword);
+
+      if(!isVerified) {
+        return {
+          success: false,
+          message: "Nenosiri la zamani sio sahihi, jaribu tena"
+        }
+      }
+
+      // hash new password and save
+      const hashedNewPassword = await hashPassword(newPassword);
+
+      await mainDb.update(users)
+      .set({
+        password: hashedNewPassword
+      })
+      .where(eq(users.id, userId))
+      .returning();
+
+
+      return {
+        success: true,
+        message: "Umefanikiwa kubadili nenosiri, tafadhali itunze"
+      }
+
+
     } catch (error) {
       if (error instanceof Error) {
-        console.error('🔥 /Sales error:', error);
+        console.error('🔥 /Update-password error:', error);
         return {
           success: false,
           message: error.message || 'Unexpected error',
@@ -600,7 +617,50 @@ const [mostDebtUser] = await mainDb
         };
       }
 
-      // get the concept of deleting shop
+      // ensure user is Admin 
+      const isAdminCheck = await mainDb.select({role: users.role}).from(users).where(eq(users.id, userId));
+
+      const isAdmin = isAdminCheck[0].role;
+
+
+      if(isAdmin !== 'owner'){
+        return {
+          success: false,
+          message: "Hauna mamlaka ya kufuta duka"
+        }
+      }
+
+      // // get the concept of deleting shop
+      await mainDb.delete(products).where(eq(products.shopId, shopId));
+      await mainDb.delete(sales).where(eq(sales.shopId, shopId));
+      await mainDb.delete(debts).where(eq(debts.shopId, shopId));
+      await mainDb.delete(debtPayments).where(eq(debtPayments.shopId, shopId));
+      await mainDb.delete(purchases).where(eq(purchases.shopId, shopId));
+      await mainDb.delete(expenses).where(eq(expenses.shopId, shopId));
+      await mainDb.delete(returns).where(eq(returns.shopId, shopId));
+      await mainDb.delete(askedProducts).where(eq(askedProducts.shopId, shopId));
+      await mainDb.delete(supplierPriceHistory).where(eq(supplierPriceHistory.shopId, shopId));
+      await mainDb.delete(suppliers).where(eq(suppliers.shopId, shopId));
+      await mainDb.delete(customers).where(eq(customers.shopId, shopId));
+      await mainDb.delete(categories).where(eq(categories.shopId, shopId));
+      await mainDb.delete(shopUsers).where(eq(shopUsers.shopId, shopId));
+      await mainDb.delete(shops).where(eq(shops.id, shopId));
+      
+      // Delete orphaned users
+      await mainDb.execute(sql`
+        DELETE FROM users 
+        WHERE id IN (
+          SELECT users.id FROM users
+          LEFT JOIN shop_users ON users.id = shop_users.user_id
+          WHERE shop_users.id IS NULL
+        );
+      `);
+      
+
+      // delete the coookie
+      await deleteAuthTokenCookie(cookie);
+
+      
     } catch (error) {
       if (error instanceof Error) {
         console.error('🔥 /Sales error:', error);
@@ -616,5 +676,44 @@ const [mostDebtUser] = await mainDb
       }
     }
   })
+
+  .get('/fetch-password', async ({ jwt, cookie, headers }) => {
+    try {
+  const { userId, shopId } = await extractId({ jwt, cookie });
+  const lang: any = headers["accept-language"]?.split(",") || "sw";
+
+  const token = cookie.auth_token?.value;
+  if (!token) {
+      throw new Error(`${await getTranslation(lang, "noToken")}`)
+  }
+
+  const decoded = await jwt.verify(token)
+  if (!decoded) {
+      throw new Error("Unauthorized -  invalid token ");
+  }
+
+  if (!shopId) {
+    return {
+      success: false,
+      message: "Shop ID is required"
+    };
+  }
+
+  // get the concept of fetching password
+} catch (error) {
+  if (error instanceof Error) {
+    console.error('🔥 /Sales error:', error);
+    return {
+      success: false,
+      message: error.message || 'Unexpected error',
+    };
+  }else{
+    return {
+      success: false,
+      message: "Analytics problems"
+    }
+  }
+}
+})
 
 export default analyticsRoute;
