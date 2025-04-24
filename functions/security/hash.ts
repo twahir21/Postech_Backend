@@ -14,3 +14,11 @@ export const hashPassword = async (password: string): Promise <string> => {
         throw new Error ("Failed to hash the password"); // this ensures that always this function returns a string
     }
 }
+
+export const verifyPassword = async (hashedPassword: string, inputPassword: string): Promise<boolean> => {
+    try {
+      return await argon2.verify(hashedPassword, inputPassword);
+    } catch (err) {
+        return false
+    }
+  };

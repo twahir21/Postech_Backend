@@ -19,7 +19,6 @@ const categoriesPlugin = new Elysia()
         const lang: any = headers["accept-language"]?.split(",") || "sw";
         const token = cookie.auth_token?.value;
         if (!token) {
-            console.log("Err: ", token)
             throw new Error(`${await getTranslation(lang, "noToken")}`)
         }
 

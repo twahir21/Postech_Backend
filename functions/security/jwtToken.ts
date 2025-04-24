@@ -17,3 +17,23 @@ export const extractId = async ({ jwt, cookie }: { jwt: any; cookie: any }): Pro
 
     return { userId: decoded.userId, shopId: decoded.shopId };
 };
+
+// Function to delete the auth_token cookie
+export default async function deleteAuthTokenCookie(cookie: any): Promise<void> {
+    try {
+        // Set the cookie value to an empty string and set its expiration date to the past
+        cookie.auth_token.set({
+            value: '', // Empty value to delete the cookie
+            httpOnly: true, // prevents JavaScript from accessing it
+            secure: true, // send over HTTPS only
+            sameSite: 'none', // for cross-origin requests
+            maxAge: 0, // Expire the cookie immediately
+            path: '/', // Path where the cookie is accessible
+            domain: '.mypostech.store', // Domain for the cookie
+        });
+
+    } catch (error) {
+        console.error("Error deleting the auth token cookie:", error);
+        throw new Error("Failed to delete the auth token cookie.");
+    }
+};

@@ -473,7 +473,6 @@ const [mostDebtUser] = await mainDb
       email = sanitizeString(email);
       shopName = sanitizeString(shopName);
 
-      console.log(email, shopName);
 
       // give the logic of saving to database
       await mainDb.update(users).set({
@@ -501,16 +500,121 @@ const [mostDebtUser] = await mainDb
     }
   })
 
-  .get('/fetch-password', ({}) => {
+  .get('/fetch-password', async ({ jwt, cookie, headers }) => {
+        try {
+      const { userId, shopId } = await extractId({ jwt, cookie });
+      const lang: any = headers["accept-language"]?.split(",") || "sw";
+  
+      const token = cookie.auth_token?.value;
+      if (!token) {
+          throw new Error(`${await getTranslation(lang, "noToken")}`)
+      }
+  
+      const decoded = await jwt.verify(token)
+      if (!decoded) {
+          throw new Error("Unauthorized -  invalid token ");
+      }
+  
+      if (!shopId) {
+        return {
+          success: false,
+          message: "Shop ID is required"
+        };
+      }
 
+      // get the concept of fetching password
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('🔥 /Sales error:', error);
+        return {
+          success: false,
+          message: error.message || 'Unexpected error',
+        };
+      }else{
+        return {
+          success: false,
+          message: "Analytics problems"
+        }
+      }
+    }
   })
 
-  .put("/update-password", ({}) => {
+  .put("/update-password", async ({ jwt, cookie, headers }) => {
+        try {
+      const { userId, shopId } = await extractId({ jwt, cookie });
+      const lang: any = headers["accept-language"]?.split(",") || "sw";
+  
+      const token = cookie.auth_token?.value;
+      if (!token) {
+          throw new Error(`${await getTranslation(lang, "noToken")}`)
+      }
+  
+      const decoded = await jwt.verify(token)
+      if (!decoded) {
+          throw new Error("Unauthorized -  invalid token ");
+      }
+  
+      if (!shopId) {
+        return {
+          success: false,
+          message: "Shop ID is required"
+        };
+      }
 
+      // get the concept of updating password
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('🔥 /Sales error:', error);
+        return {
+          success: false,
+          message: error.message || 'Unexpected error',
+        };
+      }else{
+        return {
+          success: false,
+          message: "Analytics problems"
+        }
+      }
+    }
   })
 
-  .delete("/delete-shop", ({}) => {
+  .delete("/delete-shop", async ({ jwt, cookie, headers }) => {
+        try {
+      const { userId, shopId } = await extractId({ jwt, cookie });
+      const lang: any = headers["accept-language"]?.split(",") || "sw";
+  
+      const token = cookie.auth_token?.value;
+      if (!token) {
+          throw new Error(`${await getTranslation(lang, "noToken")}`)
+      }
+  
+      const decoded = await jwt.verify(token)
+      if (!decoded) {
+          throw new Error("Unauthorized -  invalid token ");
+      }
+  
+      if (!shopId) {
+        return {
+          success: false,
+          message: "Shop ID is required"
+        };
+      }
 
+      // get the concept of deleting shop
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('🔥 /Sales error:', error);
+        return {
+          success: false,
+          message: error.message || 'Unexpected error',
+        };
+      }else{
+        return {
+          success: false,
+          message: "Analytics problems"
+        }
+      }
+    }
   })
 
 export default analyticsRoute;
