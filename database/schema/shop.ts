@@ -214,6 +214,7 @@ export const expenses = pgTable("expenses", {
   amount: integer("amount").notNull(),
   shopId: uuid("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
   date: timestamp("date").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow().$onUpdate(() => new Date())
 
 });

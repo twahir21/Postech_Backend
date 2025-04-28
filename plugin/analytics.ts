@@ -1,6 +1,6 @@
 // routes/profits.ts
 import { Elysia } from 'elysia';
-import { eq, and, sql, lte, asc, desc } from 'drizzle-orm';
+import { eq, and, sql, lte, asc, desc, ilike, gte } from 'drizzle-orm';
 import jwt from '@elysiajs/jwt';
 import deleteAuthTokenCookie, { extractId } from '../functions/security/jwtToken';
 import { getTranslation } from '../functions/translation';
@@ -330,29 +330,148 @@ const [mostDebtUser] = await mainDb
   })
 
 
-  .get('/sales', async ({ jwt, cookie, headers }) => {
+  .get('/sales', async ({ jwt, cookie, headers, query }) => {
     try {
+      // Extract user and shop IDs from JWT or cookies
       const { userId, shopId } = await extractId({ jwt, cookie });
       const lang: any = headers["accept-language"]?.split(",") || "sw";
   
       const token = cookie.auth_token?.value;
       if (!token) {
-          throw new Error(`${await getTranslation(lang, "noToken")}`)
+        throw new Error(`${await getTranslation(lang, "noToken")}`);
       }
   
-      const decoded = await jwt.verify(token)
+      const decoded = await jwt.verify(token);
       if (!decoded) {
-          throw new Error("Unauthorized -  invalid token ");
+        throw new Error("Unauthorized - invalid token");
       }
   
       if (!shopId) {
         return {
           success: false,
-          message: "Shop ID is required"
+          message: "Shop ID is required",
         };
       }
+  
+      // Extract query parameters or set defaults
+      const {
+        search = '',
+        date = 'Leo',  // Default to 'Leo' if not provided
+        from = '',
+        to = '',
+        page = '1',
+        limit = '10',
+      } = query;
 
-      // get the concept of sales needed data
+      console.log(`
+        search: ${search}, date is ${date}, 
+        from ${from} to ${to} with page ${page} and limit of ${limit}
+      `);
+  
+      const pageNum = parseInt(page as string) || 1;
+      const perPage = parseInt(limit as string) || 10;
+      const offset = (pageNum - 1) * perPage;
+  
+      // Initialize filters array
+      const filters = [];
+  
+      // Ensure shop filter is always applied
+      filters.push(eq(sales.shopId, shopId));
+  
+      // Handle search query
+      const searchTrimmed = (search as string).trim();
+
+      if (searchTrimmed) {
+        filters.push(ilike(customers.name, `%${searchTrimmed}%`));
+      }
+
+  
+      // Handle date filtering (today, week, month, or custom)
+      if (date && date !== 'Tarehe_maalumu') {
+        const today = new Date();
+        let start: Date, end: Date;
+  
+        switch (date) {
+          case 'Leo':
+            start = new Date(today.toDateString());
+            end = new Date(start);
+            end.setDate(end.getDate() + 1);
+            break;
+          case 'Wiki_hii':
+            start = new Date(today);
+            start.setDate(start.getDate() - 7);
+            end = today;
+            break;
+          case 'Mwezi_huu':
+            start = new Date(today.getFullYear(), today.getMonth(), 1);
+            end = today;
+            break;
+          case 'Jana': 
+            start = new Date(today);
+            start.setDate(today.getDate() - 1);
+            end = new Date(start);
+            break;
+          default:
+            start = end = today;
+        }
+  
+        filters.push(and(gte(sales.createdAt, start), lte(sales.createdAt, end)));
+      }
+  
+      // Handle custom date range filtering
+      if (date === 'custom' && from && to) {
+        filters.push(and(gte(sales.createdAt, new Date(from)), lte(sales.createdAt, new Date(to))));
+      }
+  
+  
+      // Construct where clause from filters
+      const whereClause = filters.length ? and(...filters) : undefined;
+  
+      // Get total count of sales matching the filters
+      const totalResult = await mainDb
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(sales)
+        .leftJoin(customers, eq(sales.customerId, customers.id))
+        .where(whereClause);
+  
+      const total = totalResult[0].count;
+  
+      // Get the sales data based on filters, pagination, and ordering
+      const results = await mainDb
+        .select({
+          date: sales.createdAt,
+          name: products.name,
+          total: sales.totalSales,
+          paymentType: sales.saleType,
+          customer: sql<string>`COALESCE(${customers.name}, 'mteja')`.as('customer')
+        })
+        .from(sales)
+        .leftJoin(customers, eq(sales.customerId, customers.id))
+        .leftJoin(products, eq(sales.productId, products.id))
+        .where(whereClause)
+        .limit(perPage)
+        .offset(offset)
+        .orderBy(desc(sales.createdAt));
+  
+      // Test query without filters for debugging (no where clause)
+      const resultsTest = await mainDb
+        .select({
+          id: sales.id,
+          date: sales.createdAt,
+          paymentType: sales.saleType,
+          customer: sql<string>`COALESCE(${customers.name}, 'anonymous')`.as('customer'),
+        })
+        .from(sales)
+        .leftJoin(customers, eq(sales.customerId, customers.id))
+        .orderBy(desc(sales.createdAt))
+        .limit(10);
+  
+
+      // Return the sales data and total count
+      return {
+        sales: results,
+        total,
+      };
     } catch (error) {
       if (error instanceof Error) {
         console.error('🔥 /Sales error:', error);
@@ -360,14 +479,15 @@ const [mostDebtUser] = await mainDb
           success: false,
           message: error.message || 'Unexpected error',
         };
-      }else{
+      } else {
         return {
           success: false,
-          message: "Analytics problems"
-        }
+          message: "Analytics problems",
+        };
       }
     }
   })
+  
 
   .get("/shop", async ({ jwt, cookie, headers }) => {
     try {
@@ -677,43 +797,177 @@ const [mostDebtUser] = await mainDb
     }
   })
 
-  .get('/fetch-password', async ({ jwt, cookie, headers }) => {
+  .get('/export-sales', async ({ jwt, cookie, headers, set }) => {
     try {
-  const { userId, shopId } = await extractId({ jwt, cookie });
-  const lang: any = headers["accept-language"]?.split(",") || "sw";
-
-  const token = cookie.auth_token?.value;
-  if (!token) {
-      throw new Error(`${await getTranslation(lang, "noToken")}`)
-  }
-
-  const decoded = await jwt.verify(token)
-  if (!decoded) {
-      throw new Error("Unauthorized -  invalid token ");
-  }
-
-  if (!shopId) {
-    return {
-      success: false,
-      message: "Shop ID is required"
-    };
-  }
-
-  // get the concept of fetching password
-} catch (error) {
-  if (error instanceof Error) {
-    console.error('🔥 /Sales error:', error);
-    return {
-      success: false,
-      message: error.message || 'Unexpected error',
-    };
-  }else{
-    return {
-      success: false,
-      message: "Analytics problems"
+      const { userId, shopId } = await extractId({ jwt, cookie });
+      const lang: any = headers["accept-language"]?.split(",") || "sw";
+  
+      const token = cookie.auth_token?.value;
+      if (!token) {
+        throw new Error(`${await getTranslation(lang, "noToken")}`)
+      }
+  
+      const decoded = await jwt.verify(token);
+      if (!decoded) {
+        throw new Error("Unauthorized - invalid token");
+      }
+  
+      if (!shopId) {
+        return {
+          success: false,
+          message: "Shop ID is required"
+        };
+      }
+  
+      // 🔥 Fetch sales for this shop
+      const salesData = await mainDb
+        .select({
+          date: sales.createdAt,
+          productName: products.name,
+          total: sales.totalSales,
+          paymentType: sales.saleType,
+          customer: sql<string>`COALESCE(${customers.name}, 'mteja')`.as('customer')
+        })
+        .from(sales)
+        .leftJoin(customers, eq(sales.customerId, customers.id))
+        .leftJoin(products, eq(sales.productId, products.id))
+        .where(eq(sales.shopId, shopId))
+        .orderBy(desc(sales.createdAt));
+  
+      // 🔥 Build CSV manually
+      const csvHeader = "Date,Product Name,Total,Payment Type,Customer\n";
+      const csvRows = salesData.map(row => {
+        const dateObj = new Date(row.date);
+        const formattedDate = `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()} ${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}:${String(dateObj.getSeconds()).padStart(2, '0')}`;
+            
+        return `${formattedDate},"${row.productName}",${row.total},${row.paymentType},"${row.customer}"`;
+      });
+      const csvContent = csvHeader + csvRows.join("\n");
+  
+      // 🔥 Set headers for file download
+      set.headers = {
+        'Content-Type': 'text/csv',
+        'Content-Disposition': 'attachment; filename="Mauzo.csv"',
+      };
+  
+      return new Response(csvContent);
+  
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('🔥 /Export sales error:', error);
+        return {
+          success: false,
+          message: error.message || 'Unexpected error',
+        };
+      } else {
+        return {
+          success: false,
+          message: "Export sales problems"
+        };
+      }
     }
-  }
-}
-})
+  })
+
+  .get("/graph", async ({ jwt, cookie, headers }) => {
+    try {
+      const { userId, shopId } = await extractId({ jwt, cookie });
+      const lang: any = headers["accept-language"]?.split(",") || "sw";
+  
+      const token = cookie.auth_token?.value;
+      if (!token) {
+          throw new Error(`${await getTranslation(lang, "noToken")}`)
+      }
+  
+      const decoded = await jwt.verify(token)
+      if (!decoded) {
+          throw new Error("Unauthorized -  invalid token ");
+      }
+  
+      if (!shopId) {
+        return {
+          success: false,
+          message: "Shop ID is required"
+        };
+      }
+
+      // get the concept of graphs
+
+      // 1. total stocks in a week
+      const stocksByDay = await mainDb
+      .select({
+        day: sql`TO_CHAR(${products.createdAt}, 'Dy')`.as('day_of_week'),
+        totalStock: sql`SUM(${products.stock})`.as('total_stock'),
+      })
+      .from(products)
+      .where(eq(products.shopId, shopId))
+      .groupBy(sql`day_of_week`)
+      .orderBy(sql`day_of_week`);
+
+      //2. Expenses by a week
+      const expensesByDay = await mainDb
+      .select({
+        day: sql`TO_CHAR(${expenses.createdAt}, 'Dy')`.as ('day_of_week'),
+        totalExpenses: sql`SUM(${expenses.amount})` .as('total_expenses')
+      })
+      .from(expenses)
+      .where(eq(expenses.shopId, shopId))
+      .groupBy(sql`day_of_week`)
+      .orderBy(sql`day_of_week`)
+
+      //3. Purchases by a week
+      const purchasesByDay = await mainDb
+      .select({
+        day: sql`TO_CHAR(${purchases.createdAt}, 'Dy')`.as ('day_of_week'),
+        totalPurchases: sql`SUM(${purchases.priceBought} * ${purchases.quantity})` .as('total_purchases')
+      })
+      .from(purchases)
+      .where(eq(purchases.shopId, shopId))
+      .groupBy(sql`day_of_week`)
+      .orderBy(sql`day_of_week`)
+
+      //2. Debtusers by a week
+      const DebtsByCustomer = await mainDb
+      .select({
+        customerName: customers.name,
+        totalDebts: sql`SUM(${debts.remainingAmount})`.as('total_debts'),
+      })
+      .from(debts)
+      .innerJoin(customers, eq(debts.customerId, customers.id))
+      .where(eq(debts.shopId, shopId))
+      .groupBy(customers.name)
+      .orderBy(sql`total_debts DESC`);
+
+      //4. total sales and debts
+    
+
+      console.log(stocksByDay, expensesByDay, purchasesByDay, DebtsByCustomer);
+
+      return {
+        success: true,
+        stocksByDay,
+        expensesByDay,
+        purchasesByDay,
+        DebtsByCustomer
+      }
+
+
+
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('🔥 /Graph error:', error);
+        return {
+          success: false,
+          message: error.message || 'Unexpected error',
+        };
+      }else{
+        return {
+          success: false,
+          message: "Graphs problems"
+        }
+      }
+    }
+  })
+  
+
 
 export default analyticsRoute;
