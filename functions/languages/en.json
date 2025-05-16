@@ -1,0 +1,44 @@
+{
+    "greeting": "Hello, from Elysia and Bun server!",
+
+    "serverErr": "Server failed to process your request",
+
+
+    "regMessage": "User registered successfully",
+    "shopErr": "Shop name must have at least 3 characters",
+    "usernameErr": "Username must have more than 3 characters",
+    "passErr": "Password must have at least 6 characters",
+
+    "nameErr": "Name cannot have less than 3 characters",
+    "categMsg": "categories assigned successfully",
+
+    "notFound": "Nothing found in the database!",
+
+    "idErr": "ID cannot have less than 5 digits or empty",
+    "userErr": "User creation failed",
+    "shopCreateErr": "Shop creation failed",
+    "emailExistsErr": "Email used is already exist",
+    "shopExistsErr": "Shop_name used is already exist",
+    "noShopErr": "No shop found, please register first",
+    "exist": "Data already exist",
+
+    "success": "Data fetched successfully",
+    "update": "Data updated successfully",
+    "save": "Data saved successfully",
+    "delMsg": "Data deleted successfully",
+
+    "contactErr": "Contact cannot have less than 4 characters",
+
+    "priceErr": "Price cannot be less than 1",
+    "stockErr": "Stock can never be negative",
+    "unitErr": "Unit can never have less than 1 character",
+    "loginErr": "Invalid credentials",
+
+    "invalidToken": "Access Denied! Invalid Token",
+    "noToken": "Acess Denied! No token provided",
+    "missingCredentials": "Username and password are required",
+
+    "loginSuccess": "Successfully logged in as",
+
+    "productSuccess": "Product added successfully"
+}
